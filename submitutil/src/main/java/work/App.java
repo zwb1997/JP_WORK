@@ -9,17 +9,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import work.constants.InitViewState;
 import work.service.AutoLoginService;
+import work.service.AutoServiceEntry;
 
-/**
- * Hello world!
- *
- */
 @SpringBootApplication
 public class App implements CommandLineRunner {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
     @Autowired
-    private AutoLoginService loginService;
+    private AutoServiceEntry serviceEntry;
 
     public static void main(String[] args) {
         LOG.info("app start");
@@ -31,6 +28,7 @@ public class App implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         LOG.info("start some services...");
-        loginService.login();
+        boolean serviceFlag = serviceEntry.run();
+
     }
 }

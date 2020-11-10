@@ -29,7 +29,8 @@ public class InitViewState {
     // get filenames from \src\main\resources\viewstates\ then init these params
     public InitViewState() {
         Path path = Paths.get("");
-        String currentWorkDir = FileSystems.getDefault().getPath("").resolve("submitutil").toAbsolutePath().toString();
+        // String currentWorkDir = FileSystems.getDefault().getPath("").resolve("submitutil").toAbsolutePath().toString();
+        String currentWorkDir = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
         Path paramsPath = path.resolve(currentWorkDir + File.separator + "src" + File.separator + "main"
                 + File.separator + "resources" + File.separator + "viewstates");
         File[] paramsFile = paramsPath.toFile().listFiles();

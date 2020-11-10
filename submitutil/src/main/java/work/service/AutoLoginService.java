@@ -4,34 +4,35 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import work.constants.BaseParameters;
-import work.constants.InitViewState;
 import work.util.HttpClientUtil;
+import work.util.PageUtil;
 
 @Service("AutoLoginService")
 public class AutoLoginService {
     private static final Logger LOG = LoggerFactory.getLogger(AutoLoginService.class);
-    private boolean hasLogin = false;
     @Autowired
     @Qualifier("HttpClientUtil")
     private HttpClientUtil clientUtil;
 
+    @Autowired
+    @Qualifier("PageUtil")
+    private PageUtil pageUtil;
+
     // 做个post提交 获取cookie
-    public void login() {
+    public void login() throws Exception {
         LOG.info("begin login service");
         List<NameValuePair> headerList = new ArrayList<>();
         headerList.add(new BasicNameValuePair("referer", "https://duty-free-japan.jp/narita/ch/memberLogin.aspx"));
@@ -54,10 +55,22 @@ public class AutoLoginService {
         UrlEncodedFormEntity formParams = new UrlEncodedFormEntity(formparams, Charset.forName("UTF-8"));
         HttpPost post = new HttpPost(BaseParameters.LOGIN_URL);
         post.setEntity(formParams);
-        String html = clientUtil.defaultRequest(headerList, post);
-        List<Cookie> cookies = clientUtil.getCookie().getCookies();
-        if (!CollectionUtils.isEmpty(cookies)) {
-            hasLogin = true;
+        clientUtil.defaultRequest(headerList, post);
+        boolean isLogin = HttpClientUtil.cookieValidation();
+        if (isLogin) {
+            CookieStore cStore = clientUtil.getCookie();
+            List<Cookie> cookies = cStore.getCookies();
+            String val = "-1";
+            for (Cookie c : cookies) {
+                if ("ASP.NET_SessionIdV2".equals(c.getName())) {
+                    val = c.getValue();
+                    break;
+                }
+            }
+            LOG.info("login success , ASP.NET_SessionIdV2 :{}", val.toString());
+        } else {
+            throw new Exception("login error");
         }
     }
+
 }
