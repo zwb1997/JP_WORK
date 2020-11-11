@@ -22,7 +22,7 @@ public class AutoServiceEntry {
             // 1.login get cookie
             loginService.login();
             // 2.place order
-            orderService.OrderServiceRun(goodIds);
+            // orderService.OrderServiceRun(goodIds);
         } catch (Exception e) {
             LOG.error("service error,message :{}", e.getMessage());
         }

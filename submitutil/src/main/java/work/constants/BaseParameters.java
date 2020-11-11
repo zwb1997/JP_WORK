@@ -7,8 +7,12 @@ public class BaseParameters {
     public static final String LOGIN_URL = "https://duty-free-japan.jp/narita/ch/memberLogin.aspx";
     public static final String CHANGE_MEMBER_INFO_URL = "https://duty-free-japan.jp/narita/ch/membersDataEdit.aspx";
     public static final String GOOD_LIST_URL = "https://duty-free-japan.jp/narita/ch/goodsReserveList.aspx";
-    //good id sCD
+    // good id sCD
     public static final String ADD_GOOD_URL = "https://duty-free-japan.jp/narita/ch/goodsDetail.aspx";
     public static final String ORIGIN = "https://duty-free-japan.jp";
     public static final String LOGIN_VIEWSTATE = "LOGIN_VIEWSTATE";
+
+    public static final String SESSION_PARAMS_NAME = "ASP.NET_SessionIdV2";
+    public static final String VISITORID_PARAMS_NAME = "visitorid";
+    public static final String JSESSIONID_PARAMS_NAME = "JSESSIONID";
 }

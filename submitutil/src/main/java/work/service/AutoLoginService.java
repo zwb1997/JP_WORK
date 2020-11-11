@@ -3,13 +3,19 @@ package work.service;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.message.BasicNameValuePair;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +29,26 @@ import work.util.PageUtil;
 @Service("AutoLoginService")
 public class AutoLoginService {
     private static final Logger LOG = LoggerFactory.getLogger(AutoLoginService.class);
+    private static final ReentrantLock LOCK = new ReentrantLock();
+    private static final List<String> LOGIN_ACTION_PARAMS_LIST = new ArrayList<>() {
+        {
+            add("__EVENTTARGET");
+            add("__EVENTARGUMENT");
+            add("__LASTFOCUS");
+            add("__VIEWSTATE");
+            add("__VIEWSTATEGENERATOR");
+            add("__SCROLLPOSITIONX");
+            add("__SCROLLPOSITIONY");
+            add("__EVENTVALIDATION");
+            add("ctl00$inputSpSearchFront");
+            add("ctl00$ddlLanguageSP");
+            add("ctl00$inputSpSearch");
+            add("ctl00$ddlLanguagePC");
+            add("ctl00$inputPcSearch");
+            add("ctl00$ddlLanguageFooterPC");
+            add("ctl00$cphMain$GoodsVariationList$ctrl0$ctl00$ddlNum");
+        }
+    };
     @Autowired
     @Qualifier("HttpClientUtil")
     private HttpClientUtil clientUtil;
@@ -32,45 +58,64 @@ public class AutoLoginService {
     private PageUtil pageUtil;
 
     // 做个post提交 获取cookie
-    public void login() throws Exception {
-        LOG.info("begin login service");
-        List<NameValuePair> headerList = new ArrayList<>();
-        headerList.add(new BasicNameValuePair("referer", "https://duty-free-japan.jp/narita/ch/memberLogin.aspx"));
-        headerList.add(new BasicNameValuePair("origin", "https://duty-free-japan.jp"));
-        List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-        formparams.add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$LBtnLogin"));
-        formparams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
-        formparams.add(new BasicNameValuePair("__LASTFOCUS", ""));
-        formparams.add(new BasicNameValuePair("__VIEWSTATEGENERATOR", "B7BAF78D"));
-        formparams.add(new BasicNameValuePair("__EVENTVALIDATION",
-                "/wEdAB65yneuzThfjiKUlW7Oj911pK3qULQQy7WVONK0QNLludqb/WScVLTOPJyPjfX7fqhYHauxUWxj6iJUCpLxjCuG8rTiM6s0s5HepNPt1TVYECCjJC4P37GB/plFbcwrSVowPrKhs3YisidZ5aqcqRaMlNFpM3eB6i1l4wzvLw3i3DwiVEJB3rUBlU1H6mA5y9S5jThhdzOwG3HSTOwNZjUWTHQw44UVodRyG4X+MuGnij5LxGY9XkUojuFZ1drTt34Km1ILVnX9dPhe3YiOZsB4za2M7TOR/04rX+2ZoIIuiMuQrGs7q+I/BFu1bMHmYNrakCaacXCDYvJEEjRoNZVcnKxNtlQ2R3cv2VmJzDHSOlbJDU1Vxc7JlI5Yqq/qGq0V+w31d6ai4v4YOHoW7q1npgWWQ6bvLlKFmMkH/sDKvzrEi/hhptXSQ7Nq0JIZ8nOSIcUVPlo612lkaW3LzCKN3lDHd9GLkWzxnGa84dLjxCTSKsS3qDbiPjBou+cogQEBmAP5+s4VpjccujAfqWrvirBMJkVdqSSfsLIxT0BYgO19yzS3DtAM9hW7SeHLgJJ6P/zOUiMSfNZbZnoyWWdiYuVxUtHvfY6ePPK26xaHEJvv6A35ua5/g/c5etAXKQuZa8hPOHsiaW5xaSdiFmxnsZSURGQGdUzRf43wWdfAlg=="));
-        formparams.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
-        formparams.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
-        formparams.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
-        formparams.add(new BasicNameValuePair("ctl00$ddlLanguagePC", ""));
-        formparams.add(new BasicNameValuePair("ctl00$inputPcSearch", ""));
-        formparams.add(new BasicNameValuePair("ctl00$cphMain$TxtMail", BaseParameters.DEMO_USER));
-        formparams.add(new BasicNameValuePair("ctl00$cphMain$TxtPASS", BaseParameters.DEMO_USER_PASS));
-        formparams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
-        UrlEncodedFormEntity formParams = new UrlEncodedFormEntity(formparams, Charset.forName("UTF-8"));
-        HttpPost post = new HttpPost(BaseParameters.LOGIN_URL);
-        post.setEntity(formParams);
-        clientUtil.defaultRequest(headerList, post);
-        boolean isLogin = HttpClientUtil.cookieValidation();
-        if (isLogin) {
-            CookieStore cStore = clientUtil.getCookie();
-            List<Cookie> cookies = cStore.getCookies();
-            String val = "-1";
-            for (Cookie c : cookies) {
-                if ("ASP.NET_SessionIdV2".equals(c.getName())) {
-                    val = c.getValue();
-                    break;
-                }
-            }
-            LOG.info("login success , ASP.NET_SessionIdV2 :{}", val.toString());
-        } else {
-            throw new Exception("login error");
+    public void loginService() throws Exception {
+
+        LOCK.lock();
+        try {
+            LOG.info("begin login service");
+            // part1 get visitorid and ASP.NET_SessionIdV2
+            getCookieParams();
+            // part2
+            login();
+        } catch (Exception e) {
+            throw new Exception("login error", e);
+        } finally {
+            LOCK.unlock();
         }
+
+    }
+
+    private void getCookieParams() throws Exception {
+        // 1.request to https://duty-free-japan.jp/narita/ch/index.aspx and get
+        // ASP.NET_SessionIdV2
+        String indexUrl = "https://duty-free-japan.jp/narita/ch/index.aspx";
+        HttpGet indexGet = new HttpGet(indexUrl);
+        clientUtil.defaultRequest(null, indexGet);
+        String asp_net_session_id = signSessionValue();
+        clientUtil.watchCookieState();
+        if (StringUtils.isBlank(asp_net_session_id)) {
+            throw new Exception("ASP.NET_SessionIdV2 not found.");
+        }
+        // 2.request to
+        // https://duty-free-japan.jp/image.jsp?id=13928
+        // https://duty-free-japan.jp/image.jsp?id=12293
+        // https://duty-free-japan.jp/image.jsp?id=2392
+        // https://duty-free-japan.jp/image.jsp?id=2393
+        // https://duty-free-japan.jp/image.jsp?id=2396
+        String img_13928 = "https://duty-free-japan.jp/image.jsp?id=13928";
+        List<NameValuePair> img_13928_headers = new ArrayList<>();
+        img_13928_headers
+                .add(new BasicNameValuePair("cookie", BaseParameters.SESSION_PARAMS_NAME + "=" + asp_net_session_id));
+        img_13928_headers.add(new BasicNameValuePair("referer", "https://duty-free-japan.jp/narita/ch/index.aspx"));
+        HttpGet img_13928_get = new HttpGet(img_13928);
+        clientUtil.defaultRequest(img_13928_headers, img_13928_get);
+        clientUtil.watchCookieState();
+    }
+
+    private void login() {
+    }
+
+    // find ASP.NET_SessionIdV2 value and return
+    private String signSessionValue() {
+        CookieStore cs = clientUtil.getCookie();
+        String asp_net_session_id = "";
+        for (Cookie c : cs.getCookies()) {
+            if (BaseParameters.SESSION_PARAMS_NAME.equals(c.getName())) {
+                asp_net_session_id = c.getValue();
+                break;
+            }
+        }
+        return asp_net_session_id;
     }
 
 }

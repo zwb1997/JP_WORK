@@ -1,12 +1,17 @@
 package work.util;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.CookieStore;
@@ -39,10 +44,6 @@ public class HttpClientUtil {
     private static volatile boolean hasLogin = false;
     private static ReentrantLock LOCK = new ReentrantLock();
     static {
-        BasicClientCookie cookie = new BasicClientCookie("JSESSIONID", RandomJsessionId());
-        cookie.setDomain(".duty-free-japan.jp");
-        cookie.setPath("/");
-        COOKIE.addCookie(cookie);
         CONNECTION_MANAGER.setDefaultMaxPerRoute(50);
         CONNECTION_MANAGER.setMaxTotal(20);
     }
@@ -50,6 +51,17 @@ public class HttpClientUtil {
     private static String RandomJsessionId() {
         String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
         return uuid;
+    }
+
+    private static String RandomVisitorId() {
+        Date d = new Date();
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        sb.append(DateFormatUtils.format(d, "yyyyMMdd"));
+        for (int i = 0; i < 12; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
     }
 
     public String defaultRequest(List<NameValuePair> headers, HttpRequestBase httpType) {
@@ -61,6 +73,7 @@ public class HttpClientUtil {
             }
         }
         try {
+            printRequestHeader(httpType);
             try (CloseableHttpResponse response = CLIENT.execute(httpType)) {
                 StatusLine statusLine = response.getStatusLine();
                 if (ObjectUtils.isNotEmpty(statusLine) && validationResponseCode(statusLine.getStatusCode())) {
@@ -72,6 +85,14 @@ public class HttpClientUtil {
 
         }
         return resHtml;
+    }
+
+    private void printRequestHeader(HttpRequestBase httpType) {
+        LOG.info("=======request header========");
+        Header[] hds = httpType.getAllHeaders();
+        for (Header h : hds) {
+            LOG.info(" header :{} ,value :{}", h.getName(), h.getValue());
+        }
     }
 
     private boolean validationResponseCode(int statusCode) {
@@ -122,6 +143,28 @@ public class HttpClientUtil {
             LOG.error("set haslogin error , message:{}", e.getMessage());
         } finally {
             LOCK.unlock();
+        }
+    }
+
+    public String getUserSessionVal() throws Exception {
+        List<Cookie> cookies = COOKIE.getCookies();
+        String cookieValue = "";
+        for (Cookie c : cookies) {
+            if (StringUtils.isNotBlank(c.getValue())) {
+                // if ("ASP.NET_SessionIdV2".equals(c.getName())) {
+                // cookieValue += c.getName() + "=dr3zidpdrliw0kgky3cjku5d;";
+                // }
+                cookieValue += c.getName() + "=" + c.getValue() + ";";
+            }
+        }
+        return cookieValue;
+    }
+
+    public void watchCookieState() {
+        LOG.info("======watch cookie======");
+        CookieStore cs = getCookie();
+        for (Cookie c : cs.getCookies()) {
+            LOG.info(" cookie : {},value:{}", c.getName(), c.getValue());
         }
     }
 }

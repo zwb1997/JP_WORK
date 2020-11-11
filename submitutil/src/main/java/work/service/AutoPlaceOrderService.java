@@ -2,11 +2,18 @@ package work.service;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,6 +32,25 @@ import work.util.PageUtil;
 @Service("AutoPlaceOrderService")
 public class AutoPlaceOrderService {
     private static final Logger LOG = LoggerFactory.getLogger(AutoPlaceOrderService.class);
+    private static final List<String> ADD_GOOD_ACTION_PARAMS_LIST = new ArrayList<>() {
+        {
+            add("__EVENTTARGET");
+            add("__EVENTARGUMENT");
+            add("__LASTFOCUS");
+            add("__VIEWSTATE");
+            add("__VIEWSTATEGENERATOR");
+            add("__SCROLLPOSITIONX");
+            add("__SCROLLPOSITIONY");
+            add("__EVENTVALIDATION");
+            add("ctl00$inputSpSearchFront");
+            add("ctl00$ddlLanguageSP");
+            add("ctl00$inputSpSearch");
+            add("ctl00$ddlLanguagePC");
+            add("ctl00$inputPcSearch");
+            add("ctl00$ddlLanguageFooterPC");
+            add("ctl00$cphMain$GoodsVariationList$ctrl0$ctl00$ddlNum");
+        }
+    };
     @Autowired
     @Qualifier("HttpClientUtil")
     private HttpClientUtil clientUtil;
@@ -33,77 +59,76 @@ public class AutoPlaceOrderService {
     @Qualifier("PageUtil")
     private PageUtil pageUtil;
 
-
-
-    public void OrderServiceRun(List<String> goodIds){
-        //1.place order
+    public void OrderServiceRun(List<String> goodIds) throws Exception {
+        // 1.add good to shopping trolley
         addGoodAction(goodIds);
-        //2.get shopping trolley
+        // 2.get shopping trolley
         getGoodList();
-        //3.confirm go-off day and terminal
-        //4.confirm Airport information
-        //5.confirm payment
-        //6.finally confirm
+        // 3.confirm go-off day and terminal
+        // 4.confirm Airport information
+        // 5.confirm payment
+        // 6.finally confirm
     }
 
-
     // params sCD
-    public void addGoodAction(List<String> goodIds) {
+    public void addGoodAction(List<String> goodIds) throws Exception {
         LOG.info("begin add good...");
         if (CollectionUtils.isEmpty(goodIds)) {
             LOG.error(" goold list cannot empty ");
             return;
         }
-        String __VIEWSTATEGENERATOR = get__VIEWSTATEGENERATOR(goodIds.get(0));
-        // 第一个页面取一下__VIEWSTATEGENERATOR 参数值
+        // get cookie and add to request header
+        String userSeesionVal = clientUtil.getUserSessionVal();
         for (String goodId : goodIds) {
             try {
+                String uri = "https://duty-free-japan.jp/narita/ch/goodsDetail.aspx?sCD=" + goodId;
+                Map<String, String> formValues = createAddGoodFormParams(goodId);
                 List<NameValuePair> headerList = new ArrayList<>();
-                headerList.add(new BasicNameValuePair("referer",
-                        "https://duty-free-japan.jp/narita/ch/goodsDetail.aspx?sCD=" + goodId));
+                headerList.add(new BasicNameValuePair("referer", uri));
                 headerList.add(new BasicNameValuePair("origin", "https://duty-free-japan.jp"));
+                headerList.add(new BasicNameValuePair("cookie", userSeesionVal));
                 List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-                formparams.add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$LBtnLogin"));
-                formparams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
-                formparams.add(new BasicNameValuePair("__LASTFOCUS", ""));
-                formparams.add(new BasicNameValuePair("__VIEWSTATEGENERATOR", __VIEWSTATEGENERATOR));
-                formparams.add(new BasicNameValuePair("__EVENTVALIDATION",
-                        "/wEdAB65yneuzThfjiKUlW7Oj911pK3qULQQy7WVONK0QNLludqb/WScVLTOPJyPjfX7fqhYHauxUWxj6iJUCpLxjCuG8rTiM6s0s5HepNPt1TVYECCjJC4P37GB/plFbcwrSVowPrKhs3YisidZ5aqcqRaMlNFpM3eB6i1l4wzvLw3i3DwiVEJB3rUBlU1H6mA5y9S5jThhdzOwG3HSTOwNZjUWTHQw44UVodRyG4X+MuGnij5LxGY9XkUojuFZ1drTt34Km1ILVnX9dPhe3YiOZsB4za2M7TOR/04rX+2ZoIIuiMuQrGs7q+I/BFu1bMHmYNrakCaacXCDYvJEEjRoNZVcnKxNtlQ2R3cv2VmJzDHSOlbJDU1Vxc7JlI5Yqq/qGq0V+w31d6ai4v4YOHoW7q1npgWWQ6bvLlKFmMkH/sDKvzrEi/hhptXSQ7Nq0JIZ8nOSIcUVPlo612lkaW3LzCKN3lDHd9GLkWzxnGa84dLjxCTSKsS3qDbiPjBou+cogQEBmAP5+s4VpjccujAfqWrvirBMJkVdqSSfsLIxT0BYgO19yzS3DtAM9hW7SeHLgJJ6P/zOUiMSfNZbZnoyWWdiYuVxUtHvfY6ePPK26xaHEJvv6A35ua5/g/c5etAXKQuZa8hPOHsiaW5xaSdiFmxnsZSURGQGdUzRf43wWdfAlg=="));
-                formparams.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
-                formparams.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
-                formparams.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
-                formparams.add(new BasicNameValuePair("ctl00$ddlLanguagePC", ""));
-                formparams.add(new BasicNameValuePair("ctl00$inputPcSearch", ""));
-                formparams.add(new BasicNameValuePair("ctl00$cphMain$TxtMail", BaseParameters.DEMO_USER));
-                formparams.add(new BasicNameValuePair("ctl00$cphMain$TxtPASS", BaseParameters.DEMO_USER_PASS));
-                formparams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
+                for (String s : ADD_GOOD_ACTION_PARAMS_LIST) {
+                    formparams.add(new BasicNameValuePair(s, formValues.get(s)));
+                }
                 UrlEncodedFormEntity formParams = new UrlEncodedFormEntity(formparams, Charset.forName("UTF-8"));
+                HttpPost post = new HttpPost(uri);
 
+                post.setEntity(formParams);
+                String html = clientUtil.defaultRequest(headerList, post);
+                System.out.println(html);
             } catch (Exception e) {
-                LOG.error("add good error , good id :{} ,message:{}", e.getMessage());
+                LOG.error("add good error , good id :{} ,message:{}", goodIds, e.getMessage());
             }
 
         }
-
+        // validation good count
     }
 
-    private String get__VIEWSTATEGENERATOR(String goodId) {
-        String __VIEWSTATEGENERATOR = "";
+    private Map<String, String> createAddGoodFormParams(String goodId) throws Exception {
+        LinkedHashMap<String, String> map = new LinkedHashMap<>();
+        int size = ADD_GOOD_ACTION_PARAMS_LIST.size();
         String uri = "https://duty-free-japan.jp/narita/ch/goodsDetail.aspx?sCD=" + goodId;
         List<NameValuePair> headerList = new ArrayList<>();
         headerList.add(new BasicNameValuePair("referer", "https://duty-free-japan.jp/narita/ch/index.aspx"));
         HttpGet get = new HttpGet(uri);
         String html = clientUtil.defaultRequest(headerList, get);
+        if (StringUtils.isBlank(html)) {
+            throw new Exception("goodId place to shopping trolley failed return html is empty");
+        }
         Document document = Jsoup.parse(html);
-        Element ele = document.getElementById("__VIEWSTATEGENERATOR");
-
-        return __VIEWSTATEGENERATOR;
+        for (int i = 0; i < size; i++) {
+            String params = ADD_GOOD_ACTION_PARAMS_LIST.get(i);
+            String value = "";
+            value = i < 8 ? pageUtil.fetchElementValueAttrWithSection(document, params) : "";
+            map.put(params, value);
+        }
+        map.put(ADD_GOOD_ACTION_PARAMS_LIST.get(0), "ctl00$cphMain$LBtnAddCart");
+        map.put(ADD_GOOD_ACTION_PARAMS_LIST.get(14), "1");
+        return map;
     }
 
     public void getGoodList() {
         LOG.info("begin get goodlist...");
-        List<NameValuePair> headerList = new ArrayList<>();
-        headerList.add(new BasicNameValuePair("referer", "https://duty-free-japan.jp/narita/ch/memberLogin.aspx"));
-        headerList.add(new BasicNameValuePair("origin", "https://duty-free-japan.jp"));
     }
 }
