@@ -20,7 +20,7 @@ public class AutoServiceEntry {
         boolean flag = false;
         try {
             // 1.login get cookie
-            loginService.login();
+            loginService.loginService();
             // 2.place order
             // orderService.OrderServiceRun(goodIds);
         } catch (Exception e) {
