@@ -1,0 +1,34 @@
+ctl00$cphMain$lsvCart$ctrl0$hdnScd: 5101030027
+ctl00$cphMain$lsvCart$ctrl0$hdnPrice: 4800
+ctl00$cphMain$lsvCart$ctrl0$hdnWaribikiTanka: 4800
+ctl00$cphMain$lsvCart$ctrl0$ddlNum: 3
+
+ctl00$cphMain$lsvCart$ctrl1$hdnScd: 5201190032
+ctl00$cphMain$lsvCart$ctrl1$hdnPrice: 7000
+ctl00$cphMain$lsvCart$ctrl1$hdnWaribikiTanka: 7000
+ctl00$cphMain$lsvCart$ctrl1$ddlNum: 1
+
+ctl00$cphMain$lsvCart$ctrl2$hdnScd: 5101120070
+ctl00$cphMain$lsvCart$ctrl2$hdnPrice: 24400
+ctl00$cphMain$lsvCart$ctrl2$hdnWaribikiTanka: 24400
+ctl00$cphMain$lsvCart$ctrl2$ddlNum: 1
+
+
+__VIEWSTATEGENERATOR: 0F5345F5
+
+__SCROLLPOSITIONX: 0
+__SCROLLPOSITIONY: 800
+
+__VIEWSTATEENCRYPTED: 
+ctl00$inputSpSearchFront: 
+ctl00$ddlLanguageSP: 
+ctl00$inputSpSearch: 
+ctl00$ddlLanguagePC: 
+ctl00$inputPcSearch: 
+
+
+ctl00$cphMain$UC_TerminalInput$TxtDatepicker: 2020/11/14
+ctl00$cphMain$UC_TerminalInput$DdlTerminal: 23
+
+terminal1 : 21
+terminal2 : 23

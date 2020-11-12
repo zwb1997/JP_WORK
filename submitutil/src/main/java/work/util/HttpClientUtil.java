@@ -20,6 +20,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -34,35 +35,20 @@ public class HttpClientUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientUtil.class);
     private static final BasicCookieStore COOKIE = new BasicCookieStore();
+    private static final LaxRedirectStrategy REDIRECT_STRATEGY = new LaxRedirectStrategy();
     private static final PoolingHttpClientConnectionManager CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(
             60, TimeUnit.SECONDS);
     private static CloseableHttpClient CLIENT = HttpClientBuilder.create()
-            .setConnectionTimeToLive(5000, TimeUnit.SECONDS).setDefaultCookieStore(COOKIE)
-            .setUserAgent(BaseParameters.USER_AGENT).setConnectionManager(CONNECTION_MANAGER).build();
-    private static volatile boolean hasLogin = false;
+            .setConnectionTimeToLive(5000, TimeUnit.SECONDS).setRedirectStrategy(REDIRECT_STRATEGY)
+            .setDefaultCookieStore(COOKIE).setUserAgent(BaseParameters.USER_AGENT)
+            .setConnectionManager(CONNECTION_MANAGER).build();
     private static ReentrantLock LOCK = new ReentrantLock();
     static {
         CONNECTION_MANAGER.setDefaultMaxPerRoute(50);
         CONNECTION_MANAGER.setMaxTotal(20);
     }
 
-    private static String RandomJsessionId() {
-        String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-        return uuid;
-    }
-
-    private static String RandomVisitorId() {
-        Date d = new Date();
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder();
-        sb.append(DateFormatUtils.format(d, "yyyyMMdd"));
-        for (int i = 0; i < 12; i++) {
-            sb.append(random.nextInt(10));
-        }
-        return sb.toString();
-    }
-
-    public String defaultRequest(List<NameValuePair> headers, HttpRequestBase httpType) {
+    public String defaultRequest(List<NameValuePair> headers, HttpRequestBase httpType, boolean useHtml) {
         LOG.info("begin request...");
         String resHtml = "";
         if (!CollectionUtils.isEmpty(headers)) {
@@ -76,7 +62,7 @@ public class HttpClientUtil {
                 StatusLine statusLine = response.getStatusLine();
                 if (ObjectUtils.isNotEmpty(statusLine) && validationResponseCode(statusLine.getStatusCode())) {
                     LOG.info("response success");
-                    resHtml = EntityUtils.toString(response.getEntity());
+                    resHtml = useHtml ? EntityUtils.toString(response.getEntity()) : "";
                 }
             }
         } catch (Exception e) {
@@ -106,56 +92,15 @@ public class HttpClientUtil {
         return COOKIE;
     }
 
-    // validation cookie is exists
-    public static boolean cookieValidation() {
-        boolean flag = false;
-        LOCK.lock();
-        try {
-            List<Cookie> cookies = COOKIE.getCookies();
-            for (Cookie c : cookies) {
-                if ("ASP.NET_SessionIdV2".equals(c.getName())) {
-                    if (StringUtils.isNotBlank(c.getValue())) {
-                        flag = true;
-                        setHasLogin(true);
-                        break;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error("set haslogin error , message:{}", e.getMessage());
-        } finally {
-            LOCK.unlock();
-        }
-        return flag;
-    }
-
-    public static boolean getHasLogin() {
-        return hasLogin;
-    }
-
-    private static void setHasLogin(boolean hasLogin) {
-        LOCK.lock();
-        try {
-            HttpClientUtil.hasLogin = hasLogin;
-        } catch (Exception e) {
-            LOG.error("set haslogin error , message:{}", e.getMessage());
-        } finally {
-            LOCK.unlock();
-        }
-    }
-
-    public String getUserSessionVal() throws Exception {
+    public String getFullUserSessionVal() {
         List<Cookie> cookies = COOKIE.getCookies();
-        String cookieValue = "";
+        StringBuilder cookieValue = new StringBuilder();
         for (Cookie c : cookies) {
             if (StringUtils.isNotBlank(c.getValue())) {
-                // if ("ASP.NET_SessionIdV2".equals(c.getName())) {
-                // cookieValue += c.getName() + "=dr3zidpdrliw0kgky3cjku5d;";
-                // }
-                cookieValue += c.getName() + "=" + c.getValue() + ";";
+                cookieValue.append(c.getName() + "=" + c.getValue() + ";");
             }
         }
-        return cookieValue;
+        return cookieValue.toString();
     }
 
     public void watchCookieState() {

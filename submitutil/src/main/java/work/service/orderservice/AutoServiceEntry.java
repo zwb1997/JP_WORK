@@ -1,5 +1,6 @@
-package work.service;
+package work.service.orderservice;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -16,13 +17,17 @@ public class AutoServiceEntry {
     @Autowired
     private AutoPlaceOrderService orderService;
 
-    public boolean run(List<String> goodIds) {
+    public boolean run() {
         boolean flag = false;
         try {
             // 1.login get cookie
+            long startTime = System.currentTimeMillis();
             loginService.loginService();
+            LOG.info("login service finish");
             // 2.place order
-            // orderService.OrderServiceRun(goodIds);
+            orderService.OrderServiceRun();
+            long endTime = System.currentTimeMillis();
+            LOG.info(" use time : {}", (endTime - startTime) / 1000);
         } catch (Exception e) {
             LOG.error("service error,message :{}", e.getMessage());
         }

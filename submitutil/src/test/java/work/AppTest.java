@@ -1,5 +1,6 @@
 package work;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Path;
@@ -10,6 +11,8 @@ import java.util.LinkedHashMap;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
+
+import work.model.GoodModel;
 
 /**
  * Unit test for simple App.
@@ -35,15 +38,10 @@ public class AppTest {
 
     @Test
     public void test2() {
-        Date d = new Date();
-        String val = DateFormatUtils.format(d, "yyyy-MM-dd");
-        System.out.println(val);
-        String dd = "321321";
-        SS(dd);
-        System.out.println(dd);
+        GoodModel d1 = new GoodModel("111222333", 1);
+        GoodModel d2 = new GoodModel("111222333", 2);
+        GoodModel d3 = new GoodModel("1112223331", 2);
+        assertEquals(d1, d3);
     }
 
-    public void SS(String a) {
-        a = "123123";
-    }
 }

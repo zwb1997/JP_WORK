@@ -51,4 +51,26 @@ public class PageUtil {
         return value;
     }
 
+    /**
+     * get first element by attr name and return the value corresponding to the
+     * value attribute;
+     * 
+     * @param doc
+     * @param name
+     * @return
+     */
+    public String getValueAttrWithSection(Document doc, String name) {
+        String value = "";
+        LOCK.lock();
+        try {
+            Element ele = doc.getElementsByAttribute(name).first();
+            value = ele.attr("value");
+        } catch (Exception e) {
+            LOG.error(" getValueAttrWithSection error ,name: {}, message : ", name, e);
+        } finally {
+            LOCK.unlock();
+        }
+        return value;
+    }
+
 }
