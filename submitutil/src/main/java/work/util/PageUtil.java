@@ -59,18 +59,18 @@ public class PageUtil {
      * @param name
      * @return
      */
-    public String getValueAttrWithSection(Document doc, String name) {
-        String value = "";
+    public String getValueAttrWithSection(Document doc, String name, String value) {
+        String result = "";
         LOCK.lock();
         try {
-            Element ele = doc.getElementsByAttribute(name).first();
-            value = ele.attr("value");
+            Element ele = doc.getElementsByAttributeValue(name, value).first();
+            result = ele.attr("value");
         } catch (Exception e) {
-            LOG.error(" getValueAttrWithSection error ,name: {}, message : ", name, e);
+            LOG.error(" getValueAttrWithSection error ,name: {},value :{} message : ", name, value, e);
         } finally {
             LOCK.unlock();
         }
-        return value;
+        return result;
     }
 
 }

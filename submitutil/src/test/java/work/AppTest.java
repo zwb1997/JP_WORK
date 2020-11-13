@@ -38,10 +38,9 @@ public class AppTest {
 
     @Test
     public void test2() {
-        GoodModel d1 = new GoodModel("111222333", 1);
-        GoodModel d2 = new GoodModel("111222333", 2);
-        GoodModel d3 = new GoodModel("1112223331", 2);
-        assertEquals(d1, d3);
+        String word = "1|1|2|3|$|%";
+        var arr = word.split("\\|");
+        System.out.println(arr);
     }
 
 }

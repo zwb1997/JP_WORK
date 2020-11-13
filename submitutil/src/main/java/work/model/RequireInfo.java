@@ -31,8 +31,8 @@ public class RequireInfo {
     public static RequireInfo generateDefaultInfo() {
         RequireInfo model = new RequireInfo();
         // model.setDepartureDate(DateFormatUtils.format(new Date(), "yyyy/MM/dd"));
-        model.setDepartureDate("2020/11/14");
-        model.setTerminalState("21");
+        model.setDepartureDate("2020/11/16");
+        model.setTerminalState("23");
         return model;
     }
 

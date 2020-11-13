@@ -1,6 +1,7 @@
 package work;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
@@ -37,8 +38,10 @@ public class App implements CommandLineRunner {
         LOG.info("start some services...");
         // Collections.addAll(goodIds, new String[] { "5201230113",
         // "5201230117","5201230119" });
+        List<GoodModel> glist1 = new ArrayList<>();
         GoodModel gm1 = new GoodModel("5101030027", 1);
-        Collections.addAll(BaseParameters.GOOD_IDS, gm1);
+        Collections.addAll(glist1, gm1);
+        Collections.addAll(BaseParameters.G_LISTS, glist1);
         boolean serviceFlag = serviceEntry.run();
 
     }
