@@ -91,9 +91,9 @@ public class AutoPlaceOrderService {
     private PageUtil pageUtil;
 
     public void OrderServiceRun() throws Exception {
-        // 1.add good to shopping trolley
+        // 1.add good to shopping trolley *done
         addGoodAction();
-        // 2.get shopping trolley and confirm go-off day and terminal
+        // 2.get shopping trolley and confirm go-off day and terminal *done
         takeOrderAction();
         // 3.confirm Airport information
         // 4.confirm payment
@@ -158,7 +158,8 @@ public class AutoPlaceOrderService {
 
         HttpPost post = new HttpPost(BaseParameters.TAKE_ORDER_ACTION_URI);
         post.setEntity(formEntity);
-        String html = clientUtil.defaultRequest(headers, post, true);
+        // String html = clientUtil.defaultRequest(headers, post, true);
+        clientUtil.defaultRequest(headers, post, false);
         LOG.info("1");
     }
 
