@@ -1,2 +1,2 @@
 # JP_WORK
-automic make order
+automatically make order
