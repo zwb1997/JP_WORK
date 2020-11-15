@@ -7,21 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +27,13 @@ import work.model.RequireInfo;
 import work.util.HttpClientUtil;
 import work.util.PageUtil;
 
+/**
+ * @author xxx
+ * 
+ */
 @Service("AutoPlaceOrderService")
 public class AutoPlaceOrderService {
     private static final Logger LOG = LoggerFactory.getLogger(AutoPlaceOrderService.class);
-    private static final Random RANDOM = new Random();
     private static final List<String> ADD_GOOD_ACTION_PARAMS_LIST = new ArrayList<>() {
         {
             add("__EVENTTARGET");
@@ -96,9 +92,12 @@ public class AutoPlaceOrderService {
         // 2.get shopping trolley and confirm go-off day and terminal *done
         takeOrderAction();
         // 3.confirm Airport information
+        confirmAirportInfo();
         // 4.confirm payment
         // 5.finally confirm
     }
+
+   
 
     // params sCD
     private void addGoodAction() throws Exception {
@@ -159,10 +158,16 @@ public class AutoPlaceOrderService {
         HttpPost post = new HttpPost(BaseParameters.TAKE_ORDER_ACTION_URI);
         post.setEntity(formEntity);
         // String html = clientUtil.defaultRequest(headers, post, true);
-        clientUtil.defaultRequest(headers, post, false);
+        String html = clientUtil.defaultRequest(headers, post, true);
         LOG.info("1");
     }
+    private void confirmAirportInfo() {
+        //generate formMap
+        //
 
+
+
+    }
     private Map<String, String> createAddGoodFormParams(GoodModel model) throws Exception {
         String goodId = model.getGoodId();
         LinkedHashMap<String, String> map = new LinkedHashMap<>();

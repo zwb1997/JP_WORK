@@ -1,13 +1,12 @@
 package work.service.orderservice;
-
-import java.util.Date;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * order service entry
+ */
 @Service("AutoServiceEntry")
 public class AutoServiceEntry {
     private static final Logger LOG = LoggerFactory.getLogger(AutoServiceEntry.class);

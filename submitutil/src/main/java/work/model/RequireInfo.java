@@ -12,6 +12,15 @@ public class RequireInfo {
     // 23->ternimal2
     private String terminalState;
 
+    // airline company
+    private String airlineName;
+    // flight number
+    private String flightNumber;
+    // archibe destination
+    private String destination;
+    // search words (if have)
+    private String searchWords;
+
     public String getDepartureDate() {
         return departureDate;
     }
@@ -31,7 +40,7 @@ public class RequireInfo {
     public static RequireInfo generateDefaultInfo() {
         RequireInfo model = new RequireInfo();
         // model.setDepartureDate(DateFormatUtils.format(new Date(), "yyyy/MM/dd"));
-        model.setDepartureDate("2020/11/16");
+        model.setDepartureDate("2020/11/22");
         model.setTerminalState("23");
         return model;
     }

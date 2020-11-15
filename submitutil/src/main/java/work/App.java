@@ -19,6 +19,9 @@ import work.service.orderservice.AutoServiceEntry;
 /**
  * need three account go fetch "5201230113","5201230117","5201230119" fetch web
  * page find the good counld buy and take order
+ * 
+ * ATTENTION!!!
+ * change department time when local test!
  */
 @SpringBootApplication
 public class App implements CommandLineRunner {

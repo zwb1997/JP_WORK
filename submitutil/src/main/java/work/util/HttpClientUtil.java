@@ -11,6 +11,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.CookieStore;
@@ -35,13 +36,14 @@ public class HttpClientUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientUtil.class);
     private static final BasicCookieStore COOKIE = new BasicCookieStore();
+    private static final HttpHost PROXY_HOST = new HttpHost("149.28.21.114",55367);
     private static final LaxRedirectStrategy REDIRECT_STRATEGY = new LaxRedirectStrategy();
     private static final PoolingHttpClientConnectionManager CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(
             60, TimeUnit.SECONDS);
     private static CloseableHttpClient CLIENT = HttpClientBuilder.create()
             .setConnectionTimeToLive(5000, TimeUnit.SECONDS).setRedirectStrategy(REDIRECT_STRATEGY)
             .setDefaultCookieStore(COOKIE).setUserAgent(BaseParameters.USER_AGENT)
-            .setConnectionManager(CONNECTION_MANAGER).build();
+            .setConnectionManager(CONNECTION_MANAGER).setProxy(PROXY_HOST).build();
     private static ReentrantLock LOCK = new ReentrantLock();
     static {
         CONNECTION_MANAGER.setDefaultMaxPerRoute(50);
@@ -60,6 +62,7 @@ public class HttpClientUtil {
             printRequestHeader(httpType);
             try (CloseableHttpResponse response = CLIENT.execute(httpType)) {
                 StatusLine statusLine = response.getStatusLine();
+               
                 if (ObjectUtils.isNotEmpty(statusLine) && validationResponseCode(statusLine.getStatusCode())) {
                     LOG.info("response success");
                     resHtml = useHtml ? EntityUtils.toString(response.getEntity()) : "";
