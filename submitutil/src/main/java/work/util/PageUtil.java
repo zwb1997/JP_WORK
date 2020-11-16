@@ -37,7 +37,7 @@ public class PageUtil {
      * @param sectionRegix
      * @return
      */
-    public String fetchElementValueAttrWithSection(Document doc, String id) {
+    public String fetchElementValueAttrWithId(Document doc, String id) {
         String value = "";
         LOCK.lock();
         try {

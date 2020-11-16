@@ -1,28 +1,31 @@
 package work.util;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.ServiceUnavailableRetryStrategy;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +38,51 @@ import work.constants.BaseParameters;
 public class HttpClientUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientUtil.class);
+
     private static final BasicCookieStore COOKIE = new BasicCookieStore();
-    private static final HttpHost PROXY_HOST = new HttpHost("149.28.21.114",55367);
+
+    private static final HttpHost PROXY_HOST = new HttpHost("149.28.21.114", 55367);
+
     private static final LaxRedirectStrategy REDIRECT_STRATEGY = new LaxRedirectStrategy();
+
     private static final PoolingHttpClientConnectionManager CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(
             60, TimeUnit.SECONDS);
+
+    private static final RequestConfig REQUEST_REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(3000)
+            .setSocketTimeout(5000).setConnectionRequestTimeout(5000).setProxy(PROXY_HOST).build();
+
+    private static final ConnectionConfig CONNECTION_CONFIG = ConnectionConfig.custom().build();
+
+    private static final SocketConfig SOCKET_CONFIG_CONFIG = SocketConfig.custom().setSoTimeout(5000).build();
+
+    private static final int REY_TRY_COUNTS = 3;
     private static CloseableHttpClient CLIENT = HttpClientBuilder.create()
             .setConnectionTimeToLive(5000, TimeUnit.SECONDS).setRedirectStrategy(REDIRECT_STRATEGY)
             .setDefaultCookieStore(COOKIE).setUserAgent(BaseParameters.USER_AGENT)
-            .setConnectionManager(CONNECTION_MANAGER).setProxy(PROXY_HOST).build();
+            .setConnectionManager(CONNECTION_MANAGER).setDefaultConnectionConfig(CONNECTION_CONFIG)
+            .setDefaultRequestConfig(REQUEST_REQUEST_CONFIG).setDefaultSocketConfig(SOCKET_CONFIG_CONFIG)
+            .setRetryHandler(new HttpRequestRetryHandler() {
+                public boolean retryRequest(java.io.IOException exception, int executionCount,
+                        org.apache.http.protocol.HttpContext context) {
+                    return executionCount <= REY_TRY_COUNTS;
+                };
+            }).setServiceUnavailableRetryStrategy(new ServiceUnavailableRetryStrategy() {
+                int waitPeriod = 100;
+
+                @Override
+                public boolean retryRequest(HttpResponse response, int executionCount, HttpContext context) {
+                    waitPeriod *= 2;
+                    return executionCount <= REY_TRY_COUNTS && response.getStatusLine().getStatusCode() >= 500; // important!
+                }
+
+                @Override
+                public long getRetryInterval() {
+                    return waitPeriod;
+                }
+            }).build();
+
     private static ReentrantLock LOCK = new ReentrantLock();
+
     static {
         CONNECTION_MANAGER.setDefaultMaxPerRoute(50);
         CONNECTION_MANAGER.setMaxTotal(20);
@@ -62,7 +100,7 @@ public class HttpClientUtil {
             printRequestHeader(httpType);
             try (CloseableHttpResponse response = CLIENT.execute(httpType)) {
                 StatusLine statusLine = response.getStatusLine();
-               
+
                 if (ObjectUtils.isNotEmpty(statusLine) && validationResponseCode(statusLine.getStatusCode())) {
                     LOG.info("response success");
                     resHtml = useHtml ? EntityUtils.toString(response.getEntity()) : "";

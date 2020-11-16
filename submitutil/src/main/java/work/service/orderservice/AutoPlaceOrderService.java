@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -34,6 +36,7 @@ import work.util.PageUtil;
 @Service("AutoPlaceOrderService")
 public class AutoPlaceOrderService {
     private static final Logger LOG = LoggerFactory.getLogger(AutoPlaceOrderService.class);
+    private static final RequireInfo REQUIRE_INFO = RequireInfo.generateDefualtInfo();
     private static final List<String> ADD_GOOD_ACTION_PARAMS_LIST = new ArrayList<>() {
         {
             add("__EVENTTARGET");
@@ -74,6 +77,40 @@ public class AutoPlaceOrderService {
             add("ctl00$ddlLanguageFooterPC");
         }
     };
+
+    private static final List<String> AIR_PORT_POST_PARAMS = new ArrayList<>() {
+        {
+            add("ctl00$cphMain$ScriptManager1");
+            add("ctl00$inputSpSearchFront");
+            add("ctl00$ddlLanguageSP");
+            add("ctl00$inputSpSearch");
+            add("ctl00$ddlLanguagePC");
+            add("ctl00$inputPcSearch");
+            add("ctl00$cphMain$UC_ReserveGoodsList$hdnWaribikiCode");
+            add("ctl00$cphMain$UC_ReserveGoodsList$hdnWaribikiUnit");
+            add("tl00$cphMain$UC_ReserveGoodsList$hdnWaribikiValue");
+            add("ctl00$cphMain$UC_ReserveGoodsList$hdnWaribikiDiscount");
+            add("ctl00$cphMain$UC_ReserveGoodsList$hdnBaseDetailPrice");
+            add("ctl00$cphMain$UC_ReserveGoodsList$hdnWaribikiPrice");
+            add("ctl00$cphMain$UC_BoardingInput$ChkAirportName");
+            add("ctl00$cphMain$UC_BoardingInput$DdlAirline");
+            add("ctl00$cphMain$UC_BoardingInput$TxtFlightNumber");
+            add("ctl00$cphMain$UC_BoardingInput$chkAgree");
+            add("ctl00$cphMain$UC_BoardingInput$DdlDestination");
+            add("ctl00$cphMain$UC_BoardingInput$transit");
+            add("ctl00$cphMain$UC_BoardingInput$TxtReceiverName");
+            add("ctl00$cphMain$UC_BoardingInput$txtInq");
+            add("ctl00$ddlLanguageFooterPC");
+            add("__EVENTTARGET");
+            add("__EVENTARGUMENT");
+            add("__LASTFOCUS");
+            add("__VIEWSTATE");
+            add("__VIEWSTATEGENERATOR");
+            add("__VIEWSTATEENCRYPTED");
+            add("__EVENTVALIDATION");
+            add("__ASYNCPOST");
+        }
+    };
     private static final String GOOD_LIST_FORM_PARAM_SCD_NAME = "ctl00$cphMain$lsvCart$ctrl?$hdnScd";
     private static final String GOOD_LIST_FORM_PARAM_PRICE_NAME = "ctl00$cphMain$lsvCart$ctrl?$hdnPrice";
     private static final String GOOD_LIST_FORM_PARAM_WARIBIKITANKA_NAME = "ctl00$cphMain$lsvCart$ctrl?$hdnWaribikiTanka";
@@ -90,14 +127,12 @@ public class AutoPlaceOrderService {
         // 1.add good to shopping trolley *done
         addGoodAction();
         // 2.get shopping trolley and confirm go-off day and terminal *done
-        takeOrderAction();
+        Map<String, String> airPortFormMap = takeOrderAction();
         // 3.confirm Airport information
-        confirmAirportInfo();
+        confirmAirportInfo(airPortFormMap);
         // 4.confirm payment
         // 5.finally confirm
     }
-
-   
 
     // params sCD
     private void addGoodAction() throws Exception {
@@ -134,13 +169,14 @@ public class AutoPlaceOrderService {
     }
 
     // choose department date and terminal
-    private void takeOrderAction() {
+    private Map<String, String> takeOrderAction() {
         Map<String, String> formMap = null;
+        Map<String, String> nextformMap = new LinkedHashMap<>();
         try {
             formMap = createTakeOrderActionFormMap();
         } catch (Exception e) {
             LOG.error("confirm terminal and pick time error ! , message :{}", e);
-            return;
+            return nextformMap;
         }
         List<NameValuePair> formParam = new ArrayList<>();
         Set<String> keys = formMap.keySet();
@@ -159,15 +195,53 @@ public class AutoPlaceOrderService {
         post.setEntity(formEntity);
         // String html = clientUtil.defaultRequest(headers, post, true);
         String html = clientUtil.defaultRequest(headers, post, true);
+        Document doc = Jsoup.parse(html);
+        for (String s : AIR_PORT_POST_PARAMS) {
+            nextformMap.put(s, pageUtil.fetchElementValueAttrWithId(doc, s));
+        }
+        return nextformMap;
+    }
+
+    /**
+     * confirm airline info page
+     */
+    private Map<String, String> confirmAirportInfo(Map<String, String> formMap) throws Exception {
+        // generate formMap
+        Map<String, String> nextFormMap = null;
+
+        if (ObjectUtils.isEmpty(formMap) || formMap.isEmpty()) {
+            throw new Exception(
+                    " position >>confirmAirportInfo  prior formMap is empty ,maybe prior response html is empty ");
+        }
+        formMap.put("ctl00$cphMain$ScriptManager1",
+                "ctl00$cphMain$ScriptManager1|ctl00$cphMain$UC_BoardingInput$TxtFlightNumber");
+        formMap.put("ctl00$cphMain$UC_BoardingInput$ChkAirportName", REQUIRE_INFO.getChkAirportName());
+        formMap.put("ctl00$cphMain$UC_BoardingInput$chkAgree", REQUIRE_INFO.getChkAgree());
+        formMap.put("ctl00$cphMain$UC_BoardingInput$DdlAirline", REQUIRE_INFO.getAirlineName());
+        formMap.put("ctl00$cphMain$UC_BoardingInput$TxtFlightNumber", REQUIRE_INFO.getFlightNumber());
+        formMap.put("ctl00$cphMain$UC_BoardingInput$DdlDestination", REQUIRE_INFO.getDestination());
+        formMap.put("ctl00$cphMain$UC_BoardingInput$transit", REQUIRE_INFO.getChangeFlight());
+        formMap.put("ctl00$cphMain$UC_BoardingInput$TxtReceiverName", REQUIRE_INFO.getReceiver());
+        formMap.put("ctl00$cphMain$UC_BoardingInput$txtInq", REQUIRE_INFO.getSearchWords());
+        formMap.put("__EVENTTARGET", "ctl00$cphMain$UC_BoardingInput$TxtFlightNumber");
+        formMap.put("__ASYNCPOST", "true");
+        List<NameValuePair> headers = new ArrayList<>();
+        headers.add(new BasicNameValuePair("referer", BaseParameters.TAKE_ORDER_ACTION_URI));
+        headers.add(new BasicNameValuePair("cookie", clientUtil.getFullUserSessionVal()));
+        Set<String> confirmMapKeySet = formMap.keySet();
+        List<NameValuePair> confirmPostParams = new ArrayList<>();
+        for (String confirmKey : confirmMapKeySet) {
+            confirmPostParams.add(new BasicNameValuePair(confirmKey, formMap.get(confirmKey)));
+        }
+        UrlEncodedFormEntity confirmPostEntity = new UrlEncodedFormEntity(confirmPostParams, Charset.forName("UTF-8"));
+        HttpPost confirmPost = new HttpPost(BaseParameters.BOARDING_INFO_INPUT_URI);
+        confirmPost.setEntity(confirmPostEntity);
+        String html = clientUtil.defaultRequest(headers, confirmPost, true);
         LOG.info("1");
+
+        return nextFormMap;
     }
-    private void confirmAirportInfo() {
-        //generate formMap
-        //
 
-
-
-    }
     private Map<String, String> createAddGoodFormParams(GoodModel model) throws Exception {
         String goodId = model.getGoodId();
         LinkedHashMap<String, String> map = new LinkedHashMap<>();
@@ -186,7 +260,7 @@ public class AutoPlaceOrderService {
         for (int i = 0; i < size; i++) {
             String params = ADD_GOOD_ACTION_PARAMS_LIST.get(i);
             String value = "";
-            value = i < 8 ? pageUtil.fetchElementValueAttrWithSection(document, params) : "";
+            value = i < 8 ? pageUtil.fetchElementValueAttrWithId(document, params) : "";
             map.put(params, value);
         }
         map.put(ADD_GOOD_ACTION_PARAMS_LIST.get(0), "ctl00$cphMain$LBtnAddCart");
@@ -208,7 +282,7 @@ public class AutoPlaceOrderService {
         // form params
         Document doc = Jsoup.parse(html);
         for (String s : TAKE_ORDER_POST_PARAMS) {
-            String val = pageUtil.fetchElementValueAttrWithSection(doc, s);
+            String val = pageUtil.fetchElementValueAttrWithId(doc, s);
             formMap.put(s, val);
         }
         formMap.put("__EVENTTARGET", "ctl00$cphMain$LBtnGo");
@@ -231,9 +305,8 @@ public class AutoPlaceOrderService {
             pos++;
         }
 
-        RequireInfo info = RequireInfo.generateDefaultInfo();
-        formMap.put("ctl00$cphMain$UC_TerminalInput$TxtDatepicker", info.getDepartureDate());
-        formMap.put("ctl00$cphMain$UC_TerminalInput$DdlTerminal", info.getTerminalState());
+        formMap.put("ctl00$cphMain$UC_TerminalInput$TxtDatepicker", REQUIRE_INFO.getDepartureDate());
+        formMap.put("ctl00$cphMain$UC_TerminalInput$DdlTerminal", REQUIRE_INFO.getTerminalState());
         // confirm datepicker and ddlTermial
         confirmTimeAndTerminalChoose(formMap);
         return formMap;
@@ -284,11 +357,19 @@ public class AutoPlaceOrderService {
         HttpPost post = new HttpPost(BaseParameters.TAKE_ORDER_ACTION_URI);
         post.setEntity(formEntity);
         String html = clientUtil.defaultRequest(headers, post, true);
+        sub__ViewSateParams(html, requireMap);
+    }
+
+    private void sub__ViewSateParams(String html, Map<String, String> map) throws Exception {
+        if (StringUtils.isBlank(html) || ObjectUtils.isEmpty(map) || map.isEmpty()) {
+            throw new Exception("require params is empty >>{html} >>{Map<String, String> map}");
+        }
         String[] new__VIEWSTATEArr = html.substring(html.lastIndexOf("\n")).trim().split("\\|");
         if (new__VIEWSTATEArr.length >= 2) {
             for (int i = 0; i < new__VIEWSTATEArr.length; i++) {
                 if ("__VIEWSTATE".equals(new__VIEWSTATEArr[i])) {
-                    requireMap.put("__VIEWSTATE", new__VIEWSTATEArr[i + 1]);
+                    map.put("__VIEWSTATE", new__VIEWSTATEArr[i + 1]);
+                    LOG.info("search __VIEWSTATE params success!");
                     break;
                 }
             }

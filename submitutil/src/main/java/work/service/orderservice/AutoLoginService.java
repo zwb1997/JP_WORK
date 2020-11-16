@@ -143,7 +143,7 @@ public class AutoLoginService {
         int size = LOGIN_ACTION_PARAMS_LIST.size();
         while (pos < size && pos < 6) {
             String parasName = LOGIN_ACTION_PARAMS_LIST.get(pos);
-            paramsMap.put(parasName, pageUtil.fetchElementValueAttrWithSection(doc, parasName));
+            paramsMap.put(parasName, pageUtil.fetchElementValueAttrWithId(doc, parasName));
             pos++;
         }
         while (pos < size) {
