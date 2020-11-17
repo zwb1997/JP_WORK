@@ -52,6 +52,27 @@ public class PageUtil {
     }
 
     /**
+     * use id to select element and return text in the element
+     * 
+     * @param html
+     * @param sectionRegix
+     * @return
+     */
+    public String fetchElementTextWithId(Document doc, String id) {
+        String value = "";
+        LOCK.lock();
+        try {
+            Element ele = doc.getElementById(id);
+            value = ele.text();
+        } catch (Exception e) {
+            LOG.error("fetchElementValueAttrWithId error ,id: {}, message >>{}", id, e);
+        } finally {
+            LOCK.unlock();
+        }
+        return value;
+    }
+
+    /**
      * get first element by attr name and return the value corresponding to the
      * value attribute;
      * 

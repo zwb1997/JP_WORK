@@ -2,6 +2,7 @@ package work.service.orderservice;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,24 +30,7 @@ import work.util.PageUtil;
 public class AutoLoginService {
     private static final Logger LOG = LoggerFactory.getLogger(AutoLoginService.class);
     private static final ReentrantLock LOCK = new ReentrantLock();
-    private static final List<String> LOGIN_ACTION_PARAMS_LIST = new ArrayList<>() {
-        {
-            add("__VIEWSTATE");
-            add("__VIEWSTATEGENERATOR");
-            add("__EVENTARGUMENT");
-            add("__LASTFOCUS");
-            add("__EVENTVALIDATION");
-            add("__EVENTTARGET");
-            add("ctl00$inputSpSearchFront");
-            add("ctl00$ddlLanguageSP");
-            add("ctl00$inputSpSearch");
-            add("ctl00$ddlLanguagePC");
-            add("ctl00$inputPcSearch");
-            add("ctl00$cphMain$TxtMail");
-            add("ctl00$cphMain$TxtPASS");
-            add("ctl00$ddlLanguageFooterPC");
-        }
-    };
+    private static final List<String> LOGIN_ACTION_PARAMS_LIST = new ArrayList<>();
     @Autowired
     @Qualifier("HttpClientUtil")
     private HttpClientUtil clientUtil;
@@ -55,22 +39,27 @@ public class AutoLoginService {
     @Qualifier("PageUtil")
     private PageUtil pageUtil;
 
+    static {
+        Collections.addAll(LOGIN_ACTION_PARAMS_LIST, "__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTARGUMENT",
+                "__LASTFOCUS", "__EVENTVALIDATION", "__EVENTTARGET", "ctl00$inputSpSearchFront", "ctl00$ddlLanguageSP",
+                "ctl00$inputSpSearch", "ctl00$ddlLanguagePC", "ctl00$inputPcSearch", "ctl00$cphMain$TxtMail",
+                "ctl00$cphMain$TxtPASS", "ctl00$ddlLanguageFooterPC");
+    }
+
     // 做个post提交 获取cookie
     public void loginService() throws Exception {
-
         LOCK.lock();
         try {
             LOG.info("begin login service");
             // part1 get visitorid and ASP.NET_SessionIdV2
             getCookieParams();
-            // part2
+            // part2 login
             login();
         } catch (Exception e) {
             throw new Exception("login error", e);
         } finally {
             LOCK.unlock();
         }
-
     }
 
     private void getCookieParams() throws Exception {
