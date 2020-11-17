@@ -40,18 +40,19 @@ public class AppTest {
   public void test3() {
     String host = "127.0.0.1";
     int port = 32998;
-    try {
-      ServerSocket server = new ServerSocket(port);
-      server.setSoTimeout(0);
-      Socket socket = server.accept();
-      BufferedInputStream reader = new BufferedInputStream(socket.getInputStream());
-      byte[] dataByteArr = null;
-      dataByteArr = reader.readAllBytes();
-      String s = new String(dataByteArr);
-      System.out.println(s);
-    } catch (IOException e) {
-      LOG.error("error,message :{}", e);
-    }
+    // try {
+    // ServerSocket server = new ServerSocket(port);
+    // server.setSoTimeout(0);
+    // Socket socket = server.accept();
+    // BufferedInputStream reader = new
+    // BufferedInputStream(socket.getInputStream());
+    // byte[] dataByteArr = null;
+    // dataByteArr = reader.readAllBytes();
+    // String s = new String(dataByteArr);
+    // System.out.println(s);
+    // } catch (IOException e) {
+    // LOG.error("error,message :{}", e);
+    // }
   }
 
 }

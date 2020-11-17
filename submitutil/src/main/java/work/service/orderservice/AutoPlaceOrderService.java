@@ -105,15 +105,25 @@ public class AutoPlaceOrderService {
     public void OrderServiceRun() throws Exception {
         try {
             // 1.add good to shopping trolley *done
+            long s1 = System.currentTimeMillis();
             addGoodAction();
+            LOG.info(" addGoodAction use time : {}", (System.currentTimeMillis() - s1));
             // 2.get shopping trolley and confirm go-off day and terminal *done
+            long s2 = System.currentTimeMillis();
             Map<String, String> airPortFormMap = takeOrderAction();
+            LOG.info(" takeOrderAction use time : {}", (System.currentTimeMillis() - s2));
             // 3.confirm Airport information *done
+            long s3 = System.currentTimeMillis();
             Map<String, String> checkInfoFormMap = confirmAirportInfo(airPortFormMap);
+            LOG.info(" confirmAirportInfo use time : {}", (System.currentTimeMillis() - s3));
             // 4.confirm payment *done
+            long s4 = System.currentTimeMillis();
             Map<String, String> finalInfoFormMap = confirmPaymentInfo(checkInfoFormMap);
+            LOG.info(" confirmPaymentInfo use time : {}", (System.currentTimeMillis() - s4));
             // 5.finally confirm
+            long s5 = System.currentTimeMillis();
             finalConfirm(finalInfoFormMap);
+            LOG.info(" finalConfirm use time : {}", (System.currentTimeMillis() - s5));
         } catch (Exception e) {
             LOG.error("order service error ,message :{}", e.getMessage());
             throw new Exception("order service error ,message >>" + e.getMessage());

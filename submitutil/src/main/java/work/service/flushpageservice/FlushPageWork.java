@@ -19,7 +19,6 @@ import work.constants.BaseParameters;
 import work.util.HttpClientUtil;
 import work.util.PageUtil;
 
-@Service("FlushPageWork")
 public class FlushPageWork {
     private static final Logger LOG = LoggerFactory.getLogger(FlushPageWork.class);
     private static final List<NameValuePair> HEADERS = new ArrayList<>();
