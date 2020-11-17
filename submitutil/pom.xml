@@ -14,6 +14,7 @@
     <maven.compiler.target>11</maven.compiler.target>
     <junit-version>4.13</junit-version>
     <spring-boot-start-version>2.3.5.RELEASE</spring-boot-start-version>
+    <spring-boot-start-web-version>2.4.0</spring-boot-start-web-version>
     <httpcomponents-version>4.5.13</httpcomponents-version>
     <jackson-version>2.11.3</jackson-version>
     <java-tuples-version>1.2</java-tuples-version>
@@ -35,6 +36,12 @@
       <artifactId>spring-boot-starter</artifactId>
       <version>${spring-boot-start-version}</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+    <!-- <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>${spring-boot-start-web-version}</version>
+    </dependency> -->
     <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
