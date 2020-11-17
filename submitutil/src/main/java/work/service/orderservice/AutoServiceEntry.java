@@ -1,4 +1,5 @@
 package work.service.orderservice;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ public class AutoServiceEntry {
             orderService.OrderServiceRun();
             long endTime = System.currentTimeMillis();
             LOG.info(" use time : {}", (endTime - startTime) / 1000);
+            flag = true;
         } catch (Exception e) {
             LOG.error("service error,message :{}", e.getMessage());
         }

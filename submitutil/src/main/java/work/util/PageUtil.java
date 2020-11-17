@@ -23,7 +23,7 @@ public class PageUtil {
             Element element = Jsoup.parse(html);
             elements = element.select(sectionRegix);
         } catch (Exception e) {
-            LOG.error(" fetchElementWithSection error , message : ", e);
+            LOG.error("fetchElementWithSection error , message >>{}", e);
         } finally {
             LOCK.unlock();
         }
@@ -44,7 +44,7 @@ public class PageUtil {
             Element ele = doc.getElementById(id);
             value = ele.attr("value");
         } catch (Exception e) {
-            LOG.error(" fetchElementWithSection error ,id: {}, message : ", id, e);
+            LOG.error("fetchElementValueAttrWithId error ,id: {}, message >>{}", id, e);
         } finally {
             LOCK.unlock();
         }
@@ -66,7 +66,28 @@ public class PageUtil {
             Element ele = doc.getElementsByAttributeValue(name, value).first();
             result = ele.attr("value");
         } catch (Exception e) {
-            LOG.error(" getValueAttrWithSection error ,name: {},value :{} message : ", name, value, e);
+            LOG.error("getValueAttrWithSection error ,name: {},value :{} message >>{}", name, value, e);
+        } finally {
+            LOCK.unlock();
+        }
+        return result;
+    }
+
+    /**
+     * return text value get by className
+     * 
+     * @param doc
+     * @param className
+     * @return text value
+     */
+    public String getTextWithClassName(Document doc, String className) {
+        String result = "";
+        LOCK.lock();
+        try {
+            Element ele = doc.getElementsByClass(className).first();
+            result = ele.text();
+        } catch (Exception e) {
+            LOG.error("getTextWithClassName error ,className:{} message >>{}", className, e);
         } finally {
             LOCK.unlock();
         }

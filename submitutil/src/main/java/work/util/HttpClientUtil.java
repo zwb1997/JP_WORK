@@ -1,5 +1,7 @@
 package work.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,6 +27,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -107,7 +110,7 @@ public class HttpClientUtil {
                 }
             }
         } catch (Exception e) {
-
+            LOG.error(" request error ! , uri :{} message :{} ", httpType.getURI(), e.getMessage());
         }
         return resHtml;
     }
@@ -150,5 +153,19 @@ public class HttpClientUtil {
         for (Cookie c : cs.getCookies()) {
             LOG.info(" cookie : {},value:{}", c.getName(), c.getValue());
         }
+    }
+
+    /**
+     * create default header with cookie: , origin: and refer: with specifial value
+     * 
+     * @param referer
+     * @return
+     */
+    public List<NameValuePair> createDefaultRequestHeader(String referer) {
+        List<NameValuePair> requestHeaderList = new ArrayList<>();
+        Collections.addAll(requestHeaderList, new BasicNameValuePair("origin", BaseParameters.ORIGIN),
+                new BasicNameValuePair("referer", referer),
+                new BasicNameValuePair("cookie", this.getFullUserSessionVal()));
+        return requestHeaderList;
     }
 }

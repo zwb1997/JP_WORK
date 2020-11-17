@@ -20,8 +20,7 @@ import work.service.orderservice.AutoServiceEntry;
  * need three account go fetch "5201230113","5201230117","5201230119" fetch web
  * page find the good counld buy and take order
  * 
- * ATTENTION!!!
- * change department time when local test!
+ * ATTENTION!!! change department time when local test!
  */
 @SpringBootApplication
 public class App implements CommandLineRunner {
@@ -42,10 +41,9 @@ public class App implements CommandLineRunner {
         // Collections.addAll(goodIds, new String[] { "5201230113",
         // "5201230117","5201230119" });
         List<GoodModel> glist1 = new ArrayList<>();
-        GoodModel gm1 = new GoodModel("5101030027", 1);
+        GoodModel gm1 = new GoodModel("5322030010", 1);
         Collections.addAll(glist1, gm1);
         Collections.addAll(BaseParameters.G_LISTS, glist1);
         boolean serviceFlag = serviceEntry.run();
-
     }
 }

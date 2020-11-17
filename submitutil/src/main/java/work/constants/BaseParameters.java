@@ -15,6 +15,10 @@ public class BaseParameters {
     // shopping trolley
     public static final String TAKE_ORDER_ACTION_URI = "https://duty-free-japan.jp/narita/ch/goodsReserveList.aspx";
     public static final String BOARDING_INFO_INPUT_URI = "https://duty-free-japan.jp/narita/ch/boardingInfoInput.aspx";
+    public static final String BOARDING_INFO_CHECK_URI = "https://duty-free-japan.jp/narita/ch/boardingInfoCheck.aspx";
+    public static final String PAY_SELECT_URI = "https://duty-free-japan.jp/narita/ch/paySelect.aspx";
+
+    public static final String FINAL_CHECK_URI = "https://duty-free-japan.jp/narita/ch/goodsReserveCheck.aspx";
     // good id sCD
     public static final String ORIGIN = "https://duty-free-japan.jp";
     public static final String LOGIN_VIEWSTATE = "LOGIN_VIEWSTATE";
