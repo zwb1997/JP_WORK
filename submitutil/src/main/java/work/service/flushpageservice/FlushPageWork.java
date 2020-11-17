@@ -13,12 +13,13 @@ import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import work.constants.BaseParameters;
 import work.util.HttpClientUtil;
 import work.util.PageUtil;
-
+/**
+ * @author xx
+ */
 public class FlushPageWork {
     private static final Logger LOG = LoggerFactory.getLogger(FlushPageWork.class);
     private static final List<NameValuePair> HEADERS = new ArrayList<>();
@@ -29,13 +30,13 @@ public class FlushPageWork {
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"));
     }
     private String goodId;
-    @Autowired
     private HttpClientUtil clientUtil;
-    @Autowired
     private PageUtil pageUtil;
 
     public FlushPageWork(String goodId) {
         this.goodId = goodId;
+        this.clientUtil = new HttpClientUtil();
+        this.pageUtil = new PageUtil();
     }
 
     // ctl00_cphMain_lblAddCart

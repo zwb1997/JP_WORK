@@ -1,19 +1,19 @@
 package work;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.reader.StreamReader;
 
 /**
  * Unit test for simple App.
@@ -52,6 +52,19 @@ public class AppTest {
     // System.out.println(s);
     // } catch (IOException e) {
     // LOG.error("error,message :{}", e);
+    // }
+  }
+
+  @Test
+  public void test33() {
+    // try {
+    //   Document doc = Jsoup.parse(new File("C:\\Users\\ZZZ\\Desktop\\demo1.html"), "UTF-8");
+    //   Elements eles = doc.getElementsByTag("option");
+    //   for (Element e : eles) {
+    //     LOG.info("\"{}:{}\",", e.attr("value"), e.text());
+    //   }
+    // } catch (Exception e) {
+    //   LOG.error(" error ,message :{}", e);
     // }
   }
 
