@@ -6,9 +6,14 @@ import java.util.List;
 import work.model.GoodModel;
 
 public class BaseParameters {
-    // public static final String DEMO_USER = "IIIIInc@163.com";
+    public static final String DEMO_USER = "daadsa12323@protonmail.com";
+    // public static final String DEMO_USER = "";
+    // public static final String DEMO_USER = "";
+    // public static final String DEMO_USER = "";
+    // public static final String DEMO_USER = "";
+    // public static final String DEMO_USER = "";
     public static final List<List<GoodModel>> G_LISTS = new ArrayList<>();
-    public static final String DEMO_USER = "ddid91238@protonmail.com";
+    // public static final String DEMO_USER = "ddid91238@protonmail.com";
     public static final String DEMO_USER_PASS = "123456a";
     public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36";
     public static final String LOGIN_URL = "https://duty-free-japan.jp/narita/ch/memberLogin.aspx";

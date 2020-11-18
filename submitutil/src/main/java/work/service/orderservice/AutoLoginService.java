@@ -7,14 +7,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
 import work.constants.BaseParameters;
 import work.util.HttpClientUtil;
 import work.util.PageUtil;
@@ -62,9 +64,23 @@ public class AutoLoginService {
         }
     }
 
+    /**
+     * 
+     * 1.request to https://duty-free-japan.jp/narita/ch/index.aspx and get
+     * ASP.NET_SessionIdV2
+     * 
+     * 
+     * 2.request to under link and get visitorId
+     * https://duty-free-japan.jp/image.jsp?id=13928
+     * https://duty-free-japan.jp/image.jsp?id=12293
+     * https://duty-free-japan.jp/image.jsp?id=2392
+     * https://duty-free-japan.jp/image.jsp?id=2393
+     * https://duty-free-japan.jp/image.jsp?id=2396
+     * 
+     * @throws Exception
+     */
     private void getCookieParams() throws Exception {
-        // 1.request to https://duty-free-japan.jp/narita/ch/index.aspx and get
-        // ASP.NET_SessionIdV2
+
         String indexUrl = "https://duty-free-japan.jp/narita/ch/index.aspx";
         HttpGet indexGet = new HttpGet(indexUrl);
         clientUtil.defaultRequest(null, indexGet, false);
@@ -73,12 +89,7 @@ public class AutoLoginService {
         if (StringUtils.isBlank(asp_net_session_id)) {
             throw new Exception("ASP.NET_SessionIdV2 not found.");
         }
-        // 2.request to under link and get visitorId
-        // https://duty-free-japan.jp/image.jsp?id=13928
-        // https://duty-free-japan.jp/image.jsp?id=12293
-        // https://duty-free-japan.jp/image.jsp?id=2392
-        // https://duty-free-japan.jp/image.jsp?id=2393
-        // https://duty-free-japan.jp/image.jsp?id=2396
+
         String img_13928 = "https://duty-free-japan.jp/image.jsp?id=13928";
         List<NameValuePair> img_13928_headers = new ArrayList<>();
         img_13928_headers

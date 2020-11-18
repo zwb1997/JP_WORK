@@ -3,31 +3,31 @@ package work.service.flushpageservice;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import work.constants.BaseParameters;
 import work.util.HttpClientUtil;
 import work.util.PageUtil;
+
 /**
  * @author xx
  */
-public class FlushPageWork {
+public class FlushPageWork implements Callable<Boolean> {
     private static final Logger LOG = LoggerFactory.getLogger(FlushPageWork.class);
     private static final List<NameValuePair> HEADERS = new ArrayList<>();
 
     private static final Random RANDOM = new Random();
     static {
-        HEADERS.add(new BasicNameValuePair("user-agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"));
+        HEADERS.add(new BasicNameValuePair("user-agent", BaseParameters.USER_AGENT));
     }
     private String goodId;
     private HttpClientUtil clientUtil;
@@ -41,7 +41,7 @@ public class FlushPageWork {
 
     // ctl00_cphMain_lblAddCart
     // detail_text
-    public boolean flushPage() {
+    public Boolean call() {
         boolean flag = false;
         while (!flag) {
             try {

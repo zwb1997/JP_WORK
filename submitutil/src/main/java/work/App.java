@@ -25,7 +25,6 @@ import work.service.orderservice.AutoServiceEntry;
 public class App implements CommandLineRunner {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
-    @Autowired
     private AutoServiceEntry serviceEntry;
 
     public static void main(String[] args) {
@@ -40,8 +39,9 @@ public class App implements CommandLineRunner {
         // Collections.addAll(goodIds, new String[] { "5201230113",
         // "5201230117","5201230119" });
         List<GoodModel> glist1 = new ArrayList<>();
-        GoodModel gm1 = new GoodModel("5322030010", 1);
-        Collections.addAll(glist1, gm1);
+        GoodModel gm1 = new GoodModel("5322010012", 1);
+        GoodModel gm2 = new GoodModel("5201190032", 1);
+        Collections.addAll(glist1, gm1, gm2);
         Collections.addAll(BaseParameters.G_LISTS, glist1);
         boolean serviceFlag = serviceEntry.run();
     }

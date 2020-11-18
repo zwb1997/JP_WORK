@@ -8,13 +8,12 @@ import org.springframework.stereotype.Service;
 /**
  * order service entry
  */
-@Service("AutoServiceEntry")
 public class AutoServiceEntry {
     private static final Logger LOG = LoggerFactory.getLogger(AutoServiceEntry.class);
 
     @Autowired
     private AutoLoginService loginService;
-    @Autowired
+
     private AutoPlaceOrderService orderService;
 
     public boolean run() {

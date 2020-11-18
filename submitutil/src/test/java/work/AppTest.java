@@ -1,16 +1,12 @@
 package work;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,15 +53,11 @@ public class AppTest {
 
   @Test
   public void test33() {
-    // try {
-    //   Document doc = Jsoup.parse(new File("C:\\Users\\ZZZ\\Desktop\\demo1.html"), "UTF-8");
-    //   Elements eles = doc.getElementsByTag("option");
-    //   for (Element e : eles) {
-    //     LOG.info("\"{}:{}\",", e.attr("value"), e.text());
-    //   }
-    // } catch (Exception e) {
-    //   LOG.error(" error ,message :{}", e);
-    // }
+    // String words = "123-222-333";
+    // String[][] deepArray = new String[][] { { "John", "Mary" }, { "Alice", "Bob"
+    // } };
+    // System.out.println(Arrays.toString(words.split("-")));
+    // System.out.println(Arrays.deepToString(deepArray));
   }
 
 }

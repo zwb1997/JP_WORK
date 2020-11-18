@@ -3,33 +3,29 @@ package work.util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.ServiceUnavailableRetryStrategy;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.protocol.RedirectStrategy;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -46,52 +42,30 @@ public class HttpClientUtil {
 
     private static final HttpHost PROXY_HOST = new HttpHost("149.28.21.114", 55367);
 
-    private static final LaxRedirectStrategy REDIRECT_STRATEGY = new LaxRedirectStrategy();
+    private static final RedirectStrategy REDIRECT_STRATEGY = new DefaultRedirectStrategy();
 
-    private static final PoolingHttpClientConnectionManager CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(
-            60, TimeUnit.SECONDS);
+    private static final SocketConfig SOCKET_CONFIG = SocketConfig.custom().setSoTimeout(Timeout.ofSeconds(5))
+            .setSoKeepAlive(true).build();
 
-    private static final RequestConfig REQUEST_REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(3000)
-            .setSocketTimeout(5000).setConnectionRequestTimeout(5000).setProxy(PROXY_HOST).build();
+    private static final PoolingHttpClientConnectionManager CONNECTION_MANAGER = PoolingHttpClientConnectionManagerBuilder
+            .create().setConnectionTimeToLive(Timeout.ofSeconds(10)).setDefaultSocketConfig(SOCKET_CONFIG)
+            .setMaxConnPerRoute(20).setMaxConnTotal(50).setConnectionTimeToLive(TimeValue.ofSeconds(5)).build();
 
-    private static final ConnectionConfig CONNECTION_CONFIG = ConnectionConfig.custom().build();
+    // private static final RequestConfig REQUEST_REQUEST_CONFIG =
+    // RequestConfig.custom()
+    // .setConnectTimeout(Timeout.ofSeconds(3)).setConnectionRequestTimeout(Timeout.ofSeconds(3))
+    // .setProxy(PROXY_HOST).build();
+    private static final RequestConfig REQUEST_REQUEST_CONFIG = RequestConfig.custom()
+            .setConnectTimeout(Timeout.ofSeconds(3)).setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
 
-    private static final SocketConfig SOCKET_CONFIG_CONFIG = SocketConfig.custom().setSoTimeout(5000).build();
-
-    private static final int REY_TRY_COUNTS = 3;
-    private static CloseableHttpClient CLIENT = HttpClientBuilder.create()
-            .setConnectionTimeToLive(5000, TimeUnit.SECONDS).setRedirectStrategy(REDIRECT_STRATEGY)
+    private static CloseableHttpClient CLIENT = HttpClientBuilder.create().setRedirectStrategy(REDIRECT_STRATEGY)
             .setDefaultCookieStore(COOKIE).setUserAgent(BaseParameters.USER_AGENT)
-            .setConnectionManager(CONNECTION_MANAGER).setDefaultConnectionConfig(CONNECTION_CONFIG)
-            .setDefaultRequestConfig(REQUEST_REQUEST_CONFIG).setDefaultSocketConfig(SOCKET_CONFIG_CONFIG)
-            .setRetryHandler(new HttpRequestRetryHandler() {
-                public boolean retryRequest(java.io.IOException exception, int executionCount,
-                        org.apache.http.protocol.HttpContext context) {
-                    return executionCount <= REY_TRY_COUNTS;
-                };
-            }).setServiceUnavailableRetryStrategy(new ServiceUnavailableRetryStrategy() {
-                int waitPeriod = 100;
+            .setConnectionManager(CONNECTION_MANAGER).setDefaultRequestConfig(REQUEST_REQUEST_CONFIG)
+            .setRetryStrategy(new DefaultHttpRequestRetryStrategy(3, TimeValue.ofSeconds(2))).build();
 
-                @Override
-                public boolean retryRequest(HttpResponse response, int executionCount, HttpContext context) {
-                    waitPeriod *= 2;
-                    return executionCount <= REY_TRY_COUNTS && response.getStatusLine().getStatusCode() >= 500; // important!
-                }
+    // private static ReentrantLock LOCK = new ReentrantLock();
 
-                @Override
-                public long getRetryInterval() {
-                    return waitPeriod;
-                }
-            }).build();
-
-    private static ReentrantLock LOCK = new ReentrantLock();
-
-    static {
-        CONNECTION_MANAGER.setDefaultMaxPerRoute(50);
-        CONNECTION_MANAGER.setMaxTotal(20);
-    }
-
-    public String defaultRequest(List<NameValuePair> headers, HttpRequestBase httpType, boolean useHtml) {
+    public String defaultRequest(List<NameValuePair> headers, HttpUriRequest httpType, boolean useHtml) {
         LOG.info("begin request...");
         String resHtml = "";
         if (!CollectionUtils.isEmpty(headers)) {
@@ -102,22 +76,21 @@ public class HttpClientUtil {
         try {
             printRequestHeader(httpType);
             try (CloseableHttpResponse response = CLIENT.execute(httpType)) {
-                StatusLine statusLine = response.getStatusLine();
 
-                if (ObjectUtils.isNotEmpty(statusLine) && validationResponseCode(statusLine.getStatusCode())) {
+                if (validationResponseCode(response.getCode())) {
                     LOG.info("response success");
                     resHtml = useHtml ? EntityUtils.toString(response.getEntity()) : "";
                 }
             }
         } catch (Exception e) {
-            LOG.error(" request error ! , uri :{} message :{} ", httpType.getURI(), e.getMessage());
+            LOG.error(" request error ! , uri :{} message :{} ", httpType.getRequestUri(), e.getMessage());
         }
         return resHtml;
     }
 
-    private void printRequestHeader(HttpRequestBase httpType) {
+    private void printRequestHeader(HttpUriRequest httpType) {
         LOG.info("=======request header========");
-        Header[] hds = httpType.getAllHeaders();
+        Header[] hds = httpType.getHeaders();
         for (Header h : hds) {
             LOG.info(" header :{} ,value :{}", h.getName(), h.getValue());
         }
@@ -136,6 +109,11 @@ public class HttpClientUtil {
         return COOKIE;
     }
 
+    /**
+     * splicing all cookie string
+     * 
+     * @return
+     */
     public String getFullUserSessionVal() {
         List<Cookie> cookies = COOKIE.getCookies();
         StringBuilder cookieValue = new StringBuilder();
@@ -147,6 +125,9 @@ public class HttpClientUtil {
         return cookieValue.toString();
     }
 
+    /**
+     * watch full cookie
+     */
     public void watchCookieState() {
         LOG.info("======watch cookie======");
         CookieStore cs = getCookie();
