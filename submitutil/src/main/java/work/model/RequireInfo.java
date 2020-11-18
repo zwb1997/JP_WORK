@@ -1,15 +1,21 @@
 package work.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class RequireInfo {
 
+    @JsonProperty("gi")
+    private String goodInfos;
     // formate -> YYYY/MM/DD
+    @JsonProperty("dd")
     private String departureDate;
 
     // 21->terminal1
     // 23->ternimal2
+    @JsonProperty("ts")
     private String terminalState;
 
     // airline company
@@ -117,9 +123,11 @@ public class RequireInfo {
     // XW : NokScoot
     // ZE : Eastar Jet
     // ZH : 深圳航空
+    @JsonProperty("an")
     private String airlineName;
 
     // flight number
+    @JsonProperty("fn")
     private String flightNumber;
 
     // archibe destination
@@ -179,20 +187,26 @@ public class RequireInfo {
     // 其他亚洲地区
     // 其他欧洲地区
     // 其他
+    @JsonProperty("dt")
     private String destination;
 
     // search words (if have)
+    @JsonProperty("sw")
     private String searchWords;
 
     // the receiver
+    @JsonProperty("r")
     private String receiver;
 
     // whether change flight
     // rdoNo rdoYes
+    @JsonProperty("cf")
     private String changeFlight;
 
+    @JsonProperty("can")
     private String chkAirportName = "on";
-
+    
+    @JsonProperty("cag")
     private String chkAgree = "on";
 
     public RequireInfo() {
@@ -200,7 +214,7 @@ public class RequireInfo {
 
     public RequireInfo(String departureDate, String terminalState, String airlineName, String flightNumber,
             String destination, String searchWords, String receiver, String changeFlight, String chkAirportName,
-            String chkAgree) {
+            String chkAgree, String goodInfos) {
         this.departureDate = departureDate;
         this.terminalState = terminalState;
         this.airlineName = airlineName;
@@ -211,6 +225,7 @@ public class RequireInfo {
         this.changeFlight = changeFlight;
         this.chkAirportName = chkAirportName;
         this.chkAgree = chkAgree;
+        this.goodInfos = goodInfos;
     }
 
     public String getDepartureDate() {
@@ -293,54 +308,12 @@ public class RequireInfo {
         this.chkAgree = chkAgree;
     }
 
-    public RequireInfo departureDate(String departureDate) {
-        this.departureDate = departureDate;
-        return this;
+    public void setGoodInfos(String goodInfos) {
+        this.goodInfos = goodInfos;
     }
 
-    public RequireInfo terminalState(String terminalState) {
-        this.terminalState = terminalState;
-        return this;
-    }
-
-    public RequireInfo airlineName(String airlineName) {
-        this.airlineName = airlineName;
-        return this;
-    }
-
-    public RequireInfo flightNumber(String flightNumber) {
-        this.flightNumber = flightNumber;
-        return this;
-    }
-
-    public RequireInfo destination(String destination) {
-        this.destination = destination;
-        return this;
-    }
-
-    public RequireInfo searchWords(String searchWords) {
-        this.searchWords = searchWords;
-        return this;
-    }
-
-    public RequireInfo receiver(String receiver) {
-        this.receiver = receiver;
-        return this;
-    }
-
-    public RequireInfo changeFlight(String changeFlight) {
-        this.changeFlight = changeFlight;
-        return this;
-    }
-
-    public RequireInfo chkAirportName(String chkAirportName) {
-        this.chkAirportName = chkAirportName;
-        return this;
-    }
-
-    public RequireInfo chkAgree(String chkAgree) {
-        this.chkAgree = chkAgree;
-        return this;
+    public String getGoodInfos() {
+        return goodInfos;
     }
 
     @Override
@@ -363,26 +336,18 @@ public class RequireInfo {
         return new HashCodeBuilder(17, 37).append(this.receiver).toHashCode();
     }
 
-    public static RequireInfo generateDefualtInfo() {
-        RequireInfo model = new RequireInfo();
-        model.setDepartureDate("2020/11/22");
-        model.setTerminalState("23");
-        model.setAirlineName("3U");
-        model.setFlightNumber("CSC38");
-        model.setDestination("5");
-        model.setChangeFlight("rdoNo");
-        model.setReceiver("Daming");
-        model.setSearchWords("111");
-        return model;
-    }
-
     @Override
     public String toString() {
-        return "{" + " departureDate='" + getDepartureDate() + "'" + ", terminalState='" + getTerminalState() + "'"
-                + ", airlineName='" + getAirlineName() + "'" + ", flightNumber='" + getFlightNumber() + "'"
-                + ", destination='" + getDestination() + "'" + ", searchWords='" + getSearchWords() + "'"
-                + ", receiver='" + getReceiver() + "'" + ", changeFlight='" + getChangeFlight() + "'"
-                + ", chkAirportName='" + getChkAirportName() + "'" + ", chkAgree='" + getChkAgree() + "'" + "}";
+        return "{" + " 'goodInfos'='" + getGoodInfos() + "' departureDate='" + getDepartureDate() + "'"
+                + ", terminalState='" + getTerminalState() + "'" + ", airlineName='" + getAirlineName() + "'"
+                + ", flightNumber='" + getFlightNumber() + "'" + ", destination='" + getDestination() + "'"
+                + ", searchWords='" + getSearchWords() + "'" + ", receiver='" + getReceiver() + "'" + ", changeFlight='"
+                + getChangeFlight() + "'" + ", chkAirportName='" + getChkAirportName() + "'" + ", chkAgree='"
+                + getChkAgree() + "'" + "}";
+    }
+
+    public static RequireInfo generateDefualtInfo() {
+        return null;
     }
 
 }

@@ -1,3 +1,4 @@
+import {SOBJ} from "./Secret.js";
 import "./App.css";
 import { React, Component } from "react";
 import {
@@ -9,7 +10,16 @@ import {
   Card,
   CardActions,
   CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Tooltip,
+  IconButton,
 } from "@material-ui/core";
+import ErrorIcon from "@material-ui/icons/Error";
+import { Message } from "element-react";
 import DateFnsUtils from "@date-io/date-fns";
 import {
   MuiPickersUtilsProvider,
@@ -17,10 +27,12 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 import moment from "moment";
+import axios from "axios";
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      showDialog: false,
       data: [
         {
           email: "",
@@ -33,6 +45,7 @@ export default class App extends Component {
           whetherChangeFlight: "rdoNo",
           receiver: "",
           searchText: "",
+          goodIds: "",
         },
       ],
       airportCompanyList: [
@@ -201,8 +214,14 @@ export default class App extends Component {
         "57:其他",
       ],
       terminals: [
-        { label: "terminal1", value: "21" },
-        { label: "terminal2", value: "23" },
+        {
+          label: "terminal1",
+          value: "21",
+        },
+        {
+          label: "terminal2",
+          value: "23",
+        },
       ],
       whetherChangeFlight: [
         {
@@ -217,7 +236,9 @@ export default class App extends Component {
     };
   }
 
-  componentDidMount = () => {};
+  componentDidMount = () => {
+
+  };
   componentDidUpdate = () => {
     console.log(this.state.data);
   };
@@ -235,8 +256,11 @@ export default class App extends Component {
         whetherChangeFlight: "rdoNo",
         receiver: "",
         searchText: "",
+        goodIds: "",
       });
-      return { data };
+      return {
+        data,
+      };
     });
   };
   commonChangeHandler = (event, obj, attrName, index) => {
@@ -245,7 +269,9 @@ export default class App extends Component {
       if (event) {
         data[index][attrName] = event.target.value;
       }
-      return { data };
+      return {
+        data,
+      };
     });
   };
   dateChangeHandler = (dateObj, formateStr, index) => {
@@ -255,7 +281,18 @@ export default class App extends Component {
       return data;
     });
   };
-  submitAction = () => {};
+  submitAction = () => {
+    const { data, showDialog } = this.state;
+
+    data.forEach((v, index) => {});
+
+    this.setState((prev) => {
+      showDialog = false;
+      return {
+        showDialog,
+      };
+    });
+  };
   render() {
     const {
       data,
@@ -263,6 +300,7 @@ export default class App extends Component {
       airportCompanyList,
       destinationList,
       whetherChangeFlight,
+      showDialog,
     } = this.state;
     return (
       <div className="container">
@@ -274,7 +312,7 @@ export default class App extends Component {
               this.createNewAction();
             }}
           >
-            添加用户+
+            添加用户 +
           </Button>
         </div>
         <div className="info-container">
@@ -283,7 +321,7 @@ export default class App extends Component {
               <Card key={"info_index_" + index} className="info-card">
                 <CardContent>
                   <div className="info_part">
-                    <div className="info_part-title">账号:</div>
+                    <div className="info_part-title"> 账号 </div>
                     <TextField
                       value={v.email}
                       onChange={(event) => {
@@ -297,7 +335,7 @@ export default class App extends Component {
                     />
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">密码:</div>
+                    <div className="info_part-title"> 密码 </div>
                     <TextField
                       type="password"
                       value={v.password}
@@ -312,7 +350,39 @@ export default class App extends Component {
                     />
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">出发日期:</div>
+                    <div className="info_part-title">
+                      商品编号
+                      <Tooltip
+                        title={
+                          <div className="tooltip-attention">
+                            多个商品编号请以英文输入法中的
+                            ';'作为分隔符号,商品编号与商品数量以英文输入法中的':'作为分隔符;
+                            输入示范
+                          </div>
+                        }
+                      >
+                        <IconButton>
+                          <ErrorIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </div>
+                    <TextField
+                      variant="outlined"
+                      rows={5}
+                      rowsMax={7}
+                      value={v.goodIds}
+                      onChange={(event) => {
+                        this.commonChangeHandler(
+                          event,
+                          undefined,
+                          "goodIds",
+                          index
+                        );
+                      }}
+                    />
+                  </div>
+                  <div className="info_part">
+                    <div className="info_part-title"> 出发日期 </div>
                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
                       <KeyboardDatePicker
                         disableToolbar
@@ -331,7 +401,7 @@ export default class App extends Component {
                     </MuiPickersUtilsProvider>
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">航站:</div>
+                    <div className="info_part-title"> 航站 </div>
                     <Select
                       className="info_select_style"
                       value={v.terminal}
@@ -354,7 +424,7 @@ export default class App extends Component {
                     </Select>
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">航空公司名称:</div>
+                    <div className="info_part-title"> 航空公司名称</div>
                     <Select
                       className="info_select_style"
                       value={v.airportCompany}
@@ -373,14 +443,14 @@ export default class App extends Component {
                             key={"airportCompany_index_" + insideIndex}
                             value={aricomv}
                           >
-                            <div className="menu_item_style">{aricomv}</div>
+                            <div className="menu_item_style"> {aricomv} </div>
                           </MenuItem>
                         );
                       })}
                     </Select>
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">航班号:</div>
+                    <div className="info_part-title"> 航班号 </div>
                     <TextField
                       value={v.flightNumber}
                       onChange={(event) => {
@@ -394,7 +464,7 @@ export default class App extends Component {
                     />
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">目的地:</div>
+                    <div className="info_part-title"> 目的地 </div>
                     <Select
                       className="info_select_style"
                       value={v.destination}
@@ -413,14 +483,14 @@ export default class App extends Component {
                             key={"destinationList_index_" + insideIndex}
                             value={destv}
                           >
-                            <div className="menu_item_style">{destv}</div>
+                            <div className="menu_item_style"> {destv} </div>
                           </MenuItem>
                         );
                       })}
                     </Select>
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">收货人:</div>
+                    <div className="info_part-title"> 收货人 </div>
                     <TextField
                       value={v.receiver}
                       onChange={(event) => {
@@ -434,10 +504,12 @@ export default class App extends Component {
                     />
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">是否转机:</div>
+                    <div className="info_part-title"> 是否转机 </div>
                     {whetherChangeFlight.map((changev, insideIndex) => {
                       return (
-                        <div key={"whetherChangeFlight_radio_index_" + insideIndex}>
+                        <div
+                          key={"whetherChangeFlight_radio_index_" + insideIndex}
+                        >
                           {changev.label}
                           <Radio
                             color="primary"
@@ -457,7 +529,7 @@ export default class App extends Component {
                     })}
                   </div>
                   <div className="info_part">
-                    <div className="info_part-title">查询(若有):</div>
+                    <div className="info_part-title"> 查询(若有) </div>
                     <TextField
                       variant="outlined"
                       rows={5}
@@ -483,11 +555,59 @@ export default class App extends Component {
             variant="contained"
             color="primary"
             onClick={() => {
-              this.submitAction();
+              let { showDialog } = this.state;
+              this.setState((prev) => {
+                showDialog = true;
+                return {
+                  showDialog,
+                };
+              });
             }}
           >
             提交工作
           </Button>
+          <Dialog open={showDialog}>
+            <DialogTitle id="alert-dialog-title">
+              {"账号与商品id核对"}
+            </DialogTitle>
+            <DialogContent>
+              {data.map((v, index) => {
+                return (
+                  <div className="email-goodis-check-style">
+                    <div>账号:{v.email}</div>
+                    <div className="email-goodis-check-style-line">
+                      抢购商品id:{v.goodIds}
+                    </div>
+                  </div>
+                );
+              })}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => {
+                  let { showDialog } = this.state;
+                  this.setState((prev) => {
+                    showDialog = false;
+                    return {
+                      showDialog,
+                    };
+                  });
+                }}
+                color="primary"
+              >
+                不提交
+              </Button>
+              <Button
+                onClick={() => {
+                  this.submitAction();
+                }}
+                color="primary"
+                autoFocus
+              >
+                提交
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       </div>
     );

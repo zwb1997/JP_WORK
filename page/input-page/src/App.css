@@ -50,4 +50,17 @@
   display: flex;
   justify-content: center;
   border-top: 1.4px solid #7b7b7b4a;
+  padding: 10px 0px;
+}
+.tooltip-attention{
+  font-size: 18px;
+  text-align: center;
+  line-height: 50px;
+}
+.email-goodis-check-style{
+  margin: 10px 0px;
+}
+.email-goodis-check-style-line{
+  border-bottom: 1px solid rgb(86, 121, 236);
+  word-break: break-word;
 }
