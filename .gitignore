@@ -30,6 +30,7 @@ hs_err_pid*
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
+/node_modules
 /page/**/node_modules
 /.pnp
 .pnp.js
@@ -38,8 +39,8 @@ hs_err_pid*
 /coverage
 
 # production
-/build
 
+/page/**/build
 # misc
 .DS_Store
 .env.local
