@@ -1,4 +1,4 @@
-package work.service.orderservice;
+package work.service.orderservice.autoplaceorder;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;

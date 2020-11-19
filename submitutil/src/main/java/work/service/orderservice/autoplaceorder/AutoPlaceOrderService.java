@@ -1,4 +1,4 @@
-package work.service.orderservice;
+package work.service.orderservice.autoplaceorder;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -34,7 +34,9 @@ import work.util.PageUtil;
  * 
  */
 public class AutoPlaceOrderService {
+
     private int goodListIndex;
+
     private static final Logger LOG = LoggerFactory.getLogger(AutoPlaceOrderService.class);
 
     private static final RequireInfo REQUIRE_INFO = RequireInfo.generateDefualtInfo();

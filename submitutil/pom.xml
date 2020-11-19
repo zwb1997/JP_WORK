@@ -15,6 +15,7 @@
     <junit-version>4.13</junit-version>
     <spring-boot-start-version>2.3.5.RELEASE</spring-boot-start-version>
     <spring-boot-start-web-version>2.4.0</spring-boot-start-web-version>
+    <spring-boot-dev-tool-version>2.4.0</spring-boot-dev-tool-version>
     <httpcomponents-version>4.5.13</httpcomponents-version>
     <httpcomponents5-version>5.0.3</httpcomponents5-version>
     <jackson-version>2.11.3</jackson-version>
@@ -22,6 +23,7 @@
     <jsoup-version>1.13.1</jsoup-version>
     <common-lang3-version>3.11</common-lang3-version>
     <guava-version>29.0-jre</guava-version>
+    <javax-servlet-api-version>4.0.1</javax-servlet-api-version>
   </properties>
 
   <dependencies>
@@ -31,6 +33,21 @@
       <version>${junit-version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${javax-servlet-api-version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-devtools</artifactId>
+      <version>${spring-boot-dev-tool-version}</version>
+    </dependency>
+
     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
     <!-- <dependency>
       <groupId>org.springframework.boot</groupId>

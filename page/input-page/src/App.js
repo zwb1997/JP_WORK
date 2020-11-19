@@ -1,4 +1,4 @@
-import {SOBJ} from "./Secret.js";
+import { SKEY } from "./Secret.js";
 import "./App.css";
 import { React, Component } from "react";
 import {
@@ -20,14 +20,18 @@ import {
 } from "@material-ui/core";
 import ErrorIcon from "@material-ui/icons/Error";
 import { Message } from "element-react";
+import "element-theme-default";
 import DateFnsUtils from "@date-io/date-fns";
 import {
   MuiPickersUtilsProvider,
-  KeyboardTimePicker,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 import moment from "moment";
 import axios from "axios";
+import md5 from "md5";
+const SERVICE_ADDR = "http://localhost:32768/auto";
+const SERVICE_ADD_PATH = "\\uD)mJ:cY\\nZ,jW}iT";
+console.log(SERVICE_ADDR + SERVICE_ADD_PATH);
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -236,9 +240,7 @@ export default class App extends Component {
     };
   }
 
-  componentDidMount = () => {
-
-  };
+  componentDidMount = () => {};
   componentDidUpdate = () => {
     console.log(this.state.data);
   };
@@ -282,15 +284,74 @@ export default class App extends Component {
     });
   };
   submitAction = () => {
-    const { data, showDialog } = this.state;
+    let { data, showDialog } = this.state;
+    let t = false;
+    for (let i = 0; i < data.length; i++) {
+      for (let name in data[i]) {
+        if (name === "searchText") {
+          continue;
+        }
+        if (
+          data[i].goodIds.split(";").length > 3 ||
+          data[i][name] === null ||
+          data[i][name] === "" ||
+          data[i][name] === undefined
+        ) {
+          t = true;
+          break;
+        }
+      }
+    }
+    // if any unfilled params return;
+    if (t) {
+      Message({
+        message: "存在未填项 或 单个账号持有商品号超过三个",
+        type: "error",
+      });
+    } else {
+      let postData = data.map((v, index) => {
+        let obj = {
+          gi: v.goodIds,
+          dd: moment(v.departmentTime).format("YYYY-MM-DD").replace("-", "\\"),
+          ts: v.terminal,
+          an: v.airportCompany.split(":")[0].trim(),
+          fn: v.flightNumber,
+          dt: v.destination.split(":")[0].trim(),
+          sw: v.searchText,
+          r: v.receiver,
+          cf: v.whetherChangeFlight,
+        };
+        return obj;
+      });
+      let curStamp = moment().unix();
+      let encodingMessage = md5(SKEY + curStamp);
+      postData = JSON.stringify(postData);
+      axios({
+        method: "POST",
+        url: SERVICE_ADDR + SERVICE_ADD_PATH,
+        data: postData,
 
-    data.forEach((v, index) => {});
+        headers: {
+          curStamp: curStamp,
+          secret: encodingMessage,
+          "content-type": "application/json",
+        },
+      });
+    }
 
+    //axios
     this.setState((prev) => {
       showDialog = false;
       return {
         showDialog,
       };
+    });
+  };
+  deleteData = (index) => {
+    let { data } = this.state;
+    this.setState((prev) => {
+      data.splice(index, 1);
+      return { data };
     });
   };
   render() {
@@ -315,14 +376,29 @@ export default class App extends Component {
             添加用户 +
           </Button>
         </div>
+        <div className="demo-text">
+          测试版本 单个账号持有商品编号先别超过3个 想先抢的账号与商品编号往前排序 序号小的优先处理 商品编号先出现的先处理
+        </div>
         <div className="info-container">
           {data.map((v, index) => {
             return (
               <Card key={"info_index_" + index} className="info-card">
                 <CardContent>
+                  <div className="info_order_index">
+                    <div>序号:{index + 1}</div>
+                    <div
+                      className="info_delete"
+                      onClick={() => {
+                        this.deleteData(index);
+                      }}
+                    >
+                      删除当前信息
+                    </div>
+                  </div>
                   <div className="info_part">
                     <div className="info_part-title"> 账号 </div>
                     <TextField
+                      error={!v.email}
                       value={v.email}
                       onChange={(event) => {
                         this.commonChangeHandler(
@@ -338,6 +414,7 @@ export default class App extends Component {
                     <div className="info_part-title"> 密码 </div>
                     <TextField
                       type="password"
+                      error={!v.password}
                       value={v.password}
                       onChange={(event) => {
                         this.commonChangeHandler(
@@ -355,9 +432,12 @@ export default class App extends Component {
                       <Tooltip
                         title={
                           <div className="tooltip-attention">
-                            多个商品编号请以英文输入法中的
-                            ';'作为分隔符号,商品编号与商品数量以英文输入法中的':'作为分隔符;
-                            输入示范
+                            多个商品编号请以<strong>英文输入法</strong>中的
+                            <strong>'&nbsp;;&nbsp;'</strong>
+                            作为分隔符号,商品编号与商品数量以
+                            <strong>英文输入法</strong>中的
+                            <strong>'&nbsp;:&nbsp;'</strong>
+                            作为分隔符. 输入示范 5201230131:1;5201230132:1
                           </div>
                         }
                       >
@@ -367,9 +447,12 @@ export default class App extends Component {
                       </Tooltip>
                     </div>
                     <TextField
+                      className="good_id_count_text"
                       variant="outlined"
+                      multiline
                       rows={5}
                       rowsMax={7}
+                      error={!v.goodIds || v.goodIds.split(";").length > 3}
                       value={v.goodIds}
                       onChange={(event) => {
                         this.commonChangeHandler(
@@ -385,6 +468,7 @@ export default class App extends Component {
                     <div className="info_part-title"> 出发日期 </div>
                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
                       <KeyboardDatePicker
+                        error={!v.departmentTime}
                         disableToolbar
                         variant="inline"
                         format="MM/dd/yyyy"
@@ -404,6 +488,7 @@ export default class App extends Component {
                     <div className="info_part-title"> 航站 </div>
                     <Select
                       className="info_select_style"
+                      error={!v.terminal}
                       value={v.terminal}
                       onChange={(event, obj) => {
                         this.commonChangeHandler(event, obj, "terminal", index);
@@ -427,6 +512,7 @@ export default class App extends Component {
                     <div className="info_part-title"> 航空公司名称</div>
                     <Select
                       className="info_select_style"
+                      error={!v.airportCompany}
                       value={v.airportCompany}
                       onChange={(event, obj) => {
                         this.commonChangeHandler(
@@ -452,6 +538,7 @@ export default class App extends Component {
                   <div className="info_part">
                     <div className="info_part-title"> 航班号 </div>
                     <TextField
+                      error={!v.flightNumber}
                       value={v.flightNumber}
                       onChange={(event) => {
                         this.commonChangeHandler(
@@ -466,6 +553,7 @@ export default class App extends Component {
                   <div className="info_part">
                     <div className="info_part-title"> 目的地 </div>
                     <Select
+                      error={!v.destination}
                       className="info_select_style"
                       value={v.destination}
                       onChange={(event, obj) => {
@@ -492,6 +580,7 @@ export default class App extends Component {
                   <div className="info_part">
                     <div className="info_part-title"> 收货人 </div>
                     <TextField
+                      error={!v.receiver}
                       value={v.receiver}
                       onChange={(event) => {
                         this.commonChangeHandler(
@@ -567,13 +656,19 @@ export default class App extends Component {
             提交工作
           </Button>
           <Dialog open={showDialog}>
-            <DialogTitle id="alert-dialog-title">
+            <DialogTitle
+              // key={"asdasd_asd_index_" + Math.random() * 100}
+              id="alert-dialog-title"
+            >
               {"账号与商品id核对"}
             </DialogTitle>
             <DialogContent>
               {data.map((v, index) => {
                 return (
-                  <div className="email-goodis-check-style">
+                  <div
+                    key={"check_good_index_" + index}
+                    className="email-goodis-check-style"
+                  >
                     <div>账号:{v.email}</div>
                     <div className="email-goodis-check-style-line">
                       抢购商品id:{v.goodIds}

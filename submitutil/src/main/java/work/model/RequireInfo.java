@@ -1,5 +1,7 @@
 package work.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -205,9 +207,11 @@ public class RequireInfo {
 
     @JsonProperty("can")
     private String chkAirportName = "on";
-    
+
     @JsonProperty("cag")
     private String chkAgree = "on";
+
+    private List<GoodModel> goodModels;
 
     public RequireInfo() {
     }
@@ -226,6 +230,10 @@ public class RequireInfo {
         this.chkAirportName = chkAirportName;
         this.chkAgree = chkAgree;
         this.goodInfos = goodInfos;
+    }
+
+    public List<GoodModel> getGoodModels() {
+        return goodModels;
     }
 
     public String getDepartureDate() {
@@ -310,6 +318,10 @@ public class RequireInfo {
 
     public void setGoodInfos(String goodInfos) {
         this.goodInfos = goodInfos;
+    }
+
+    public void setGoodModels(List<GoodModel> goodModels) {
+        this.goodModels = goodModels;
     }
 
     public String getGoodInfos() {

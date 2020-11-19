@@ -13,7 +13,8 @@ public class SignUtil {
 
     public static boolean validateSecret(String encodes, String curStamp) {
         LOG.info("begin secret validation");
-        String localEncodes = DigestUtils.md5(BaseParameters.SECRET + curStamp).toString();
+        String localEncodes = DigestUtils.md5Hex(BaseParameters.SECRET + curStamp).toLowerCase();
+
         return localEncodes.equals(encodes);
     }
 }
