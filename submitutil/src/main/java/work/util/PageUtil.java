@@ -15,17 +15,14 @@ public class PageUtil {
     private static final Logger LOG = LoggerFactory.getLogger(PageUtil.class);
     private static final ReentrantLock LOCK = new ReentrantLock();
 
-    public Elements fetchElementWithSection(String html, String sectionRegix) {
+    public static Elements fetchElementWithSection(String html, String sectionRegix) {
 
         Elements elements = null;
-        LOCK.lock();
         try {
             Element element = Jsoup.parse(html);
             elements = element.select(sectionRegix);
         } catch (Exception e) {
             LOG.error("fetchElementWithSection error , message >>{}", e);
-        } finally {
-            LOCK.unlock();
         }
         return elements;
     }
@@ -37,17 +34,14 @@ public class PageUtil {
      * @param sectionRegix
      * @return
      */
-    public String fetchElementValueAttrWithId(Document doc, String id) {
+    public static String fetchElementValueAttrWithId(Document doc, String id) {
         String value = "";
-        LOCK.lock();
         try {
             Element ele = doc.getElementById(id);
             value = ele.attr("value");
         } catch (Exception e) {
             LOG.error("fetchElementValueAttrWithId error ,id: {}, message >>{}", id, e);
-        } finally {
-            LOCK.unlock();
-        }
+        } 
         return value;
     }
 
@@ -58,17 +52,14 @@ public class PageUtil {
      * @param sectionRegix
      * @return
      */
-    public String fetchElementTextWithId(Document doc, String id) {
+    public static String fetchElementTextWithId(Document doc, String id) {
         String value = "";
-        LOCK.lock();
         try {
             Element ele = doc.getElementById(id);
             value = ele.text();
         } catch (Exception e) {
             LOG.error("fetchElementValueAttrWithId error ,id: {}, message >>{}", id, e);
-        } finally {
-            LOCK.unlock();
-        }
+        } 
         return value;
     }
 
@@ -80,17 +71,14 @@ public class PageUtil {
      * @param name
      * @return
      */
-    public String getValueAttrWithSection(Document doc, String name, String value) {
+    public static String getValueAttrWithSection(Document doc, String name, String value) {
         String result = "";
-        LOCK.lock();
         try {
             Element ele = doc.getElementsByAttributeValue(name, value).first();
             result = ele.attr("value");
         } catch (Exception e) {
             LOG.error("getValueAttrWithSection error ,name: {},value :{} message >>{}", name, value, e);
-        } finally {
-            LOCK.unlock();
-        }
+        } 
         return result;
     }
 
@@ -101,17 +89,14 @@ public class PageUtil {
      * @param className
      * @return text value
      */
-    public String getTextWithClassName(Document doc, String className) {
+    public static String getTextWithClassName(Document doc, String className) {
         String result = "";
-        LOCK.lock();
         try {
             Element ele = doc.getElementsByClass(className).first();
             result = ele.text();
         } catch (Exception e) {
             LOG.error("getTextWithClassName error ,className:{} message >>{}", className, e);
-        } finally {
-            LOCK.unlock();
-        }
+        } 
         return result;
     }
 

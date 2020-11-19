@@ -17,8 +17,8 @@ import work.constants.BaseParameters;
 import work.model.GoodModel;
 import work.model.RequireInfo;
 import work.service.orderservice.autoplaceorder.AutoServiceEntry;
-import work.util.HttpClientUtil;
-import work.util.PageUtil;
+import static work.util.HttpClientUtil.*;
+import static work.util.PageUtil.*;
 
 /**
  * @author xx
@@ -36,15 +36,9 @@ public class FlushPageWork implements Runnable {
 
     private RequireInfo requireInfo;
 
-    private HttpClientUtil clientUtil;
-
-    private PageUtil pageUtil;
-
     public FlushPageWork(GoodModel goodModel, RequireInfo requireInfo) {
         this.goodModel = goodModel;
         this.requireInfo = requireInfo;
-        this.clientUtil = new HttpClientUtil();
-        this.pageUtil = new PageUtil();
     }
 
     // ctl00_cphMain_lblAddCart
@@ -57,10 +51,10 @@ public class FlushPageWork implements Runnable {
                 LOG.info("begin detect gooid >>{} whether could buy", goodIdStr);
                 String uri = BaseParameters.GOOD_DETAIL_INFO + "?sCD=" + goodIdStr;
                 HttpGet get = new HttpGet(uri);
-                String html = clientUtil.defaultRequest(HEADERS, get, true);
+                String html = defaultRequest(HEADERS, get, true);
                 Document doc = Jsoup.parse(html);
-                String val1 = pageUtil.getTextWithClassName(doc, "detail_text");
-                String val2 = pageUtil.fetchElementTextWithId(doc, "ctl00_cphMain_lblAddCart");
+                String val1 = getTextWithClassName(doc, "detail_text");
+                String val2 = fetchElementTextWithId(doc, "ctl00_cphMain_lblAddCart");
                 if (StringUtils.isNotBlank(val2) && StringUtils.isBlank(val1)) {
                     LOG.info("goodid :{} could buy now, will begin order service...", goodIdStr);
                     flag = true;
@@ -73,7 +67,7 @@ public class FlushPageWork implements Runnable {
                 LOG.error("flushPage error , message :{}", e);
             }
         }
-        LOG.info("flushPage end");
+        LOG.info("flush page end good could buy now");
         AutoServiceEntry autoServiceEntry = new AutoServiceEntry(goodModel, requireInfo);
         autoServiceEntry.run();
     }

@@ -24,7 +24,6 @@ public class ServiceEntry {
             ri.setGoodModels(extractGoodModel(ri));
             beginSubmitTask(ri);
         }
-
     }
 
     /**

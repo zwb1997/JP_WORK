@@ -1,11 +1,12 @@
 package work.service.orderservice.autoplaceorder;
 
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import work.model.GoodModel;
 import work.model.RequireInfo;
-
+import static work.util.HttpClientUtil.getDefauConfig;
 /**
  * order service entry
  */
@@ -16,15 +17,12 @@ public class AutoServiceEntry {
 
     private AutoPlaceOrderService orderService;
 
-    private GoodModel goodModel;
-
-    private RequireInfo requireInfo;
+    private RequestConfig singleRequestConfig;
 
     public AutoServiceEntry(GoodModel goodModel, RequireInfo requireInfo) {
-        this.goodModel = goodModel;
-        this.requireInfo = requireInfo;
-        orderService = new AutoPlaceOrderService();
-        loginService = new AutoLoginService();
+        singleRequestConfig = RequestConfig.copy(getDefauConfig()).setCookieSpec("default").build();
+        loginService = new AutoLoginService(requireInfo,singleRequestConfig);
+        orderService = new AutoPlaceOrderService(requireInfo, goodModel,singleRequestConfig);
     }
 
     public boolean run() {

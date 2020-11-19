@@ -51,21 +51,20 @@ public class HttpClientUtil {
             .create().setConnectionTimeToLive(Timeout.ofSeconds(10)).setDefaultSocketConfig(SOCKET_CONFIG)
             .setMaxConnPerRoute(20).setMaxConnTotal(50).setConnectionTimeToLive(TimeValue.ofSeconds(5)).build();
 
+    private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(Timeout.ofSeconds(3))
+            .setConnectionRequestTimeout(Timeout.ofSeconds(3)).setProxy(PROXY_HOST).build();
     // private static final RequestConfig REQUEST_REQUEST_CONFIG =
     // RequestConfig.custom()
-    // .setConnectTimeout(Timeout.ofSeconds(3)).setConnectionRequestTimeout(Timeout.ofSeconds(3))
-    // .setProxy(PROXY_HOST).build();
-    private static final RequestConfig REQUEST_REQUEST_CONFIG = RequestConfig.custom()
-            .setConnectTimeout(Timeout.ofSeconds(3)).setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
+    // .setConnectTimeout(Timeout.ofSeconds(3)).setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
 
     private static CloseableHttpClient CLIENT = HttpClientBuilder.create().setRedirectStrategy(REDIRECT_STRATEGY)
             .setDefaultCookieStore(COOKIE).setUserAgent(BaseParameters.USER_AGENT)
-            .setConnectionManager(CONNECTION_MANAGER).setDefaultRequestConfig(REQUEST_REQUEST_CONFIG)
+            .setConnectionManager(CONNECTION_MANAGER).setDefaultRequestConfig(REQUEST_CONFIG)
             .setRetryStrategy(new DefaultHttpRequestRetryStrategy(3, TimeValue.ofSeconds(2))).build();
 
     // private static ReentrantLock LOCK = new ReentrantLock();
 
-    public String defaultRequest(List<NameValuePair> headers, HttpUriRequest httpType, boolean useHtml) {
+    public static String defaultRequest(List<NameValuePair> headers, HttpUriRequest httpType, boolean useHtml) {
         LOG.info("begin request...");
         String resHtml = "";
         if (!CollectionUtils.isEmpty(headers)) {
@@ -88,7 +87,7 @@ public class HttpClientUtil {
         return resHtml;
     }
 
-    private void printRequestHeader(HttpUriRequest httpType) {
+    private static void printRequestHeader(HttpUriRequest httpType) {
         LOG.info("=======request header========");
         Header[] hds = httpType.getHeaders();
         for (Header h : hds) {
@@ -96,7 +95,7 @@ public class HttpClientUtil {
         }
     }
 
-    private boolean validationResponseCode(int statusCode) {
+    private static boolean validationResponseCode(int statusCode) {
         String codeStr = String.valueOf(statusCode);
         if (codeStr.matches("^2[0-9]{2,2}$") || codeStr.matches("^3[0-9]{2,2}$")) {
             return true;
@@ -105,7 +104,7 @@ public class HttpClientUtil {
     }
 
     // GET cookie when log in
-    public CookieStore getCookie() {
+    public static CookieStore getCookie() {
         return COOKIE;
     }
 
@@ -114,7 +113,7 @@ public class HttpClientUtil {
      * 
      * @return
      */
-    public String getFullUserSessionVal() {
+    public static String getFullUserSessionVal() {
         List<Cookie> cookies = COOKIE.getCookies();
         StringBuilder cookieValue = new StringBuilder();
         for (Cookie c : cookies) {
@@ -128,7 +127,7 @@ public class HttpClientUtil {
     /**
      * watch full cookie
      */
-    public void watchCookieState() {
+    public static void watchCookieState() {
         LOG.info("======watch cookie======");
         CookieStore cs = getCookie();
         for (Cookie c : cs.getCookies()) {
@@ -137,16 +136,32 @@ public class HttpClientUtil {
     }
 
     /**
+     * get default CookieStore object
+     * 
+     * @return
+     */
+    public static BasicCookieStore getDefaultCookieStore() {
+        return COOKIE;
+    }
+
+    /**
+     * get default RequestConfig object
+     * @return
+     */
+    public static RequestConfig getDefauConfig() {
+        return REQUEST_CONFIG;
+    }
+
+    /**
      * create default header with cookie: , origin: and refer: with specifial value
      * 
      * @param referer
      * @return
      */
-    public List<NameValuePair> createDefaultRequestHeader(String referer) {
+    public static List<NameValuePair> createDefaultRequestHeader(String referer) {
         List<NameValuePair> requestHeaderList = new ArrayList<>();
         Collections.addAll(requestHeaderList, new BasicNameValuePair("origin", BaseParameters.ORIGIN),
-                new BasicNameValuePair("referer", referer),
-                new BasicNameValuePair("cookie", this.getFullUserSessionVal()));
+                new BasicNameValuePair("referer", referer), new BasicNameValuePair("cookie", getFullUserSessionVal()));
         return requestHeaderList;
     }
 }

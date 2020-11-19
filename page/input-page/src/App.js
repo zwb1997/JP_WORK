@@ -312,7 +312,7 @@ export default class App extends Component {
       let postData = data.map((v, index) => {
         let obj = {
           gi: v.goodIds,
-          dd: moment(v.departmentTime).format("YYYY-MM-DD").replace("-", "\\"),
+          dd: moment(v.departmentTime).format("YYYY-MM-DD").replaceAll("-", "/"),
           ts: v.terminal,
           an: v.airportCompany.split(":")[0].trim(),
           fn: v.flightNumber,

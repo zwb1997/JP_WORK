@@ -9,6 +9,12 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class RequireInfo {
 
+    @JsonProperty("em")
+    private String email;
+
+    @JsonProperty("ppw")
+    private String password;
+
     @JsonProperty("gi")
     private String goodInfos;
     // formate -> YYYY/MM/DD
@@ -232,6 +238,22 @@ public class RequireInfo {
         this.goodInfos = goodInfos;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public List<GoodModel> getGoodModels() {
         return goodModels;
     }
@@ -340,22 +362,22 @@ public class RequireInfo {
             return false;
         }
         RequireInfo ri = (RequireInfo) obj;
-        return new EqualsBuilder().append(receiver, ri.receiver).isEquals();
+        return new EqualsBuilder().append(receiver, ri.receiver).append(email, ri.email).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(this.receiver).toHashCode();
+        return new HashCodeBuilder(17, 37).append(this.receiver).append(this.email).toHashCode();
     }
 
     @Override
     public String toString() {
-        return "{" + " 'goodInfos'='" + getGoodInfos() + "' departureDate='" + getDepartureDate() + "'"
-                + ", terminalState='" + getTerminalState() + "'" + ", airlineName='" + getAirlineName() + "'"
-                + ", flightNumber='" + getFlightNumber() + "'" + ", destination='" + getDestination() + "'"
-                + ", searchWords='" + getSearchWords() + "'" + ", receiver='" + getReceiver() + "'" + ", changeFlight='"
-                + getChangeFlight() + "'" + ", chkAirportName='" + getChkAirportName() + "'" + ", chkAgree='"
-                + getChkAgree() + "'" + "}";
+        return "RequireInfo{" + "email='" + email + '\'' + ", goodInfos='" + goodInfos + '\'' + ", departureDate='"
+                + departureDate + '\'' + ", terminalState='" + terminalState + '\'' + ", airlineName='" + airlineName
+                + '\'' + ", flightNumber='" + flightNumber + '\'' + ", destination='" + destination + '\''
+                + ", searchWords='" + searchWords + '\'' + ", receiver='" + receiver + '\'' + ", changeFlight='"
+                + changeFlight + '\'' + ", chkAirportName='" + chkAirportName + '\'' + ", chkAgree='" + chkAgree + '\''
+                + ", goodModels=" + goodModels + '}';
     }
 
     public static RequireInfo generateDefualtInfo() {
