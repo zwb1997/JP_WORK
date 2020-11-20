@@ -31,8 +31,10 @@ public class BaseParameters {
     public static final String SESSION_PARAMS_NAME = "ASP.NET_SessionIdV2";
     public static final String VISITORID_PARAMS_NAME = "visitorid";
     public static final String JSESSIONID_PARAMS_NAME = "JSESSIONID";
+    public static final String GOOD_ADD_ACTION_GOOD_ID = "scd";
+    public static final String GOOD_ADD_ACTION_GOOD_NAME = "su";
 
     //
-    public static final String SECRET ="oN*mE?bX=yH%bJ]wD&qQ*uC^gA(cJ]iU]vP$hU(mI[eZ@fB.sA]zF{yF?bF.qQ@cJ=iR-aJ[pV+bS_qW?vB{zK*iY)yO;gZ+wU^oP]aT_zB'dS[lM-fX]wF]nQ#tR,pV*uV%iS'eN&wO+lP?zV)nW.";
+    public static final String SECRET = "oN*mE?bX=yH%bJ]wD&qQ*uC^gA(cJ]iU]vP$hU(mI[eZ@fB.sA]zF{yF?bF.qQ@cJ=iR-aJ[pV+bS_qW?vB{zK*iY)yO;gZ+wU^oP]aT_zB'dS[lM-fX]wF]nQ#tR,pV*uV%iS'eN&wO+lP?zV)nW.";
 
 }

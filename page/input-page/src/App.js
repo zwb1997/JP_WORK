@@ -311,6 +311,8 @@ export default class App extends Component {
     } else {
       let postData = data.map((v, index) => {
         let obj = {
+          em:v.email,
+          ppw:v.password,
           gi: v.goodIds,
           dd: moment(v.departmentTime).format("YYYY-MM-DD").replaceAll("-", "/"),
           ts: v.terminal,

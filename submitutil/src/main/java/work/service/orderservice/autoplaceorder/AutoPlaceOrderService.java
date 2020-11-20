@@ -1,13 +1,12 @@
 package work.service.orderservice.autoplaceorder;
 
-import static work.util.HttpClientUtil.createDefaultRequestHeader;
-import static work.util.HttpClientUtil.defaultRequest;
 import static work.util.PageUtil.fetchElementValueAttrWithId;
 import static work.util.PageUtil.getTextWithClassName;
 import static work.util.PageUtil.getValueAttrWithSection;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -20,17 +19,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import work.constants.BaseParameters;
 import work.model.GoodModel;
+import work.model.HttpClientUtilModel;
 import work.model.RequireInfo;
+import work.util.HttpClientUtil;
+import work.util.PageUtil;
 
 /**
  * @author xxx
@@ -38,13 +44,15 @@ import work.model.RequireInfo;
  */
 public class AutoPlaceOrderService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AutoPlaceOrderService.class);
+
     private RequireInfo requireInfo;
 
     private GoodModel goodModel;
 
-    private RequestConfig singleRequestConfig;
+    private HttpClientUtilModel clientUtilModel;
 
-    private static final Logger LOG = LoggerFactory.getLogger(AutoPlaceOrderService.class);
+    private HttpClientContext currentContext;
 
     private static final List<String> ADD_GOOD_ACTION_PARAMS_LIST = new ArrayList<>();
 
@@ -103,78 +111,107 @@ public class AutoPlaceOrderService {
 
     }
 
-    public AutoPlaceOrderService(RequireInfo requireInfo, GoodModel goodModel,RequestConfig singleRequestConfig) {
+    public AutoPlaceOrderService(RequireInfo requireInfo, GoodModel goodModel, HttpClientUtilModel clientUtilModel,
+            HttpClientContext curreContext) {
         this.requireInfo = requireInfo;
         this.goodModel = goodModel;
-        this.singleRequestConfig = singleRequestConfig;
-    }
-
-    public void OrderServiceRun() throws Exception {
-        try {
-            // add good to trolley
-            addGoodAction();
-            // trolley confirm
-            Map<String, String> airPortFormMap = takeOrderAction();
-            // airline info confirm
-            Map<String, String> checkInfoFormMap = confirmAirportInfo(airPortFormMap);
-            // payment info confirm
-            Map<String, String> finalInfoFormMap = confirmPaymentInfo(checkInfoFormMap);
-            // final info confirm
-            finalConfirm(finalInfoFormMap);
-        } catch (Exception e) {
-            LOG.error("order service error ,message :{}", e.getMessage());
-            throw new Exception("order service error ,message >>" + e.getMessage());
-        }
+        this.clientUtilModel = clientUtilModel;
+        this.currentContext = curreContext;
     }
 
     // params sCD
-    private void addGoodAction() throws Exception {
+    public void addGoodAction(UrlEncodedFormEntity formEntity) throws Exception {
         LOG.info("begin add good...");
-        if (ObjectUtils.isEmpty(goodModel)) {
-            throw new Exception(" addGoodAction() ,goodModel is empty ");
+        if (ObjectUtils.isEmpty(formEntity)) {
+            LOG.error("addGoodAction , params formEntity is empty");
+            throw new Exception("addGoodActionparams formEntity is empty");
         }
-        // get cookie and add to request header
 
-        String goodId = goodModel.getGoodId();
-        String goodCount = String.valueOf(goodModel.getGoodCount());
+        List<NameValuePair> headers = HttpClientUtil.createRequestHeader(clientUtilModel.getReferer(), currentContext);
+        String uri = BaseParameters.GOOD_DETAIL_INFO + "?sCD=" + goodModel.getGoodId();
+        HttpPost post = new HttpPost(uri);
+        post.setEntity(formEntity);
+        // use current cookie to add good to shopping trolley
+        HttpClientUtil.defaultRequest(headers, post, currentContext, false, false, null);
 
-        try {
-            String uri = BaseParameters.GOOD_DETAIL_INFO + "?sCD=" + goodId;
-            List<NameValuePair> getHeaders = createDefaultRequestHeader(uri);
-            HttpGet goodInfoGet = new HttpGet(uri);
-            goodInfoGet.setConfig(singleRequestConfig);
-            String goodInfoPage = defaultRequest(getHeaders, goodInfoGet, true);
-            Document doc = Jsoup.parse(goodInfoPage);
+        List<NameValuePair> trolleyHeaders = HttpClientUtil.createRequestHeader(clientUtilModel.getReferer(),
+                currentContext);
+        // request to shopping trolley
+        HttpGet visitTrolley = new HttpGet(BaseParameters.TAKE_ORDER_ACTION_URI);
+        HttpClientUtilModel visitTrolleyModel = HttpClientUtil.defaultRequest(trolleyHeaders, visitTrolley,
+                currentContext, true, false, null);
 
-            List<NameValuePair> formParams = new ArrayList<>();
-            for (String str : ADD_GOOD_ACTION_PARAMS_LIST) {
-                formParams.add(new BasicNameValuePair(str, getValueAttrWithSection(doc, "id", str)));
-            }
-            formParams.add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$LBtnAddCart"));
-            formParams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
-            formParams.add(new BasicNameValuePair("__LASTFOCUS", ""));
-            formParams.add(new BasicNameValuePair("__SCROLLPOSITIONX", "0"));
-            formParams.add(new BasicNameValuePair("__SCROLLPOSITIONY", "0"));
-            formParams.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
-            formParams.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
-            formParams.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
-            formParams.add(new BasicNameValuePair("ctl00$ddlLanguagePC", ""));
-            formParams.add(new BasicNameValuePair("ctl00$inputPcSearch", ""));
-            formParams.add(new BasicNameValuePair("ctl00$cphMain$GoodsVariationList$ctrl0$ctl00$ddlNum", goodCount));
-            formParams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
-            UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(formParams, Charset.forName("utf-8"));
-            HttpPost goodInfoPost = new HttpPost(uri);
-            goodInfoPost.setConfig(singleRequestConfig);
-            goodInfoPost.setEntity(formEntity);
+        // extract params from visitTrolleyModel
+        Document doc = Jsoup.parse(visitTrolleyModel.getHtml());
 
-            defaultRequest(getHeaders, goodInfoPost, false);
-        } catch (Exception e) {
-            throw new Exception("add good error , good id >>" + goodId + " ,message: >>" + e.getMessage());
-        }
+        List<NameValuePair> confirmTernimalAndDateFromParams = new ArrayList<>();
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$cphMain$ScriptManager1",
+                "ctl00$cphMain$ctl00|ctl00$cphMain$UC_TerminalInput$TxtDatepicker"));
+        confirmTernimalAndDateFromParams
+                .add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$UC_TerminalInput$TxtDatepicker"));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("__LASTFOCUS", ""));
+        confirmTernimalAndDateFromParams
+                .add(new BasicNameValuePair("__VIEWSTATE", PageUtil.fetchElementValueAttrWithId(doc, "__VIEWSTATE")));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("__VIEWSTATEGENERATOR",
+                PageUtil.fetchElementValueAttrWithId(doc, "__VIEWSTATEGENERATOR")));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("__SCROLLPOSITIONX", "0"));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("__SCROLLPOSITIONY", "0"));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("__VIEWSTATEENCRYPTED", ""));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$inputPcSearch", ""));
+        confirmTernimalAndDateFromParams
+                .add(new BasicNameValuePair("ctl00$cphMain$lsvCart$ctrl0$hdnScd", goodModel.getGoodId()));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$cphMain$lsvCart$ctrl0$hdnPrice",
+                PageUtil.getValueAttrWithSection(doc, "name", "ctl00$cphMain$lsvCart$ctrl0$hdnPrice")));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$cphMain$lsvCart$ctrl0$hdnWaribikiTanka",
+                PageUtil.getValueAttrWithSection(doc, "name", "ctl00$cphMain$lsvCart$ctrl0$hdnWaribikiTanka")));
+        confirmTernimalAndDateFromParams.add(
+                new BasicNameValuePair("ctl00$cphMain$lsvCart$ctrl0$ddlNum", String.valueOf(goodModel.getGoodCount())));
+        confirmTernimalAndDateFromParams.add(
+                new BasicNameValuePair("ctl00$cphMain$UC_TerminalInput$TxtDatepicker", requireInfo.getDepartureDate()));
+        confirmTernimalAndDateFromParams.add(
+                new BasicNameValuePair("ctl00$cphMain$UC_TerminalInput$DdlTerminal", requireInfo.getTerminalState()));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("__ASYNCPOST", "true"));
+
+        UrlEncodedFormEntity confirnTernimalAndDateFormEntity = new UrlEncodedFormEntity(
+                confirmTernimalAndDateFromParams, Charset.forName("utf-8"));
+
+        HttpPost confirnTernimalAndDatePost = new HttpPost(BaseParameters.TAKE_ORDER_ACTION_URI);
+
+        confirnTernimalAndDatePost.setEntity(confirnTernimalAndDateFormEntity);
+
+        List<NameValuePair> confirnTernimalAndDateHeaders = HttpClientUtil
+                .createRequestHeader(BaseParameters.TAKE_ORDER_ACTION_URI, currentContext);
+
+        HttpClientUtilModel confirnTernimalAndDateModel = HttpClientUtil.defaultRequest(confirnTernimalAndDateHeaders,
+                confirnTernimalAndDatePost, currentContext, true, false, null);
+
+        subAndReplaceParams(confirnTernimalAndDateModel.getHtml(), confirmTernimalAndDateFromParams,
+                Arrays.asList("__VIEWSTATE", "__VIEWSTATEGENERATOR"));
+        confirmTernimalAndDateFromParams.set(1, new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$LBtnGo"));
+        confirmTernimalAndDateFromParams.remove(0);
+        confirmTernimalAndDateFromParams.remove(confirmTernimalAndDateFromParams.size() - 1);
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
+        confirmTernimalAndDateFromParams.add(new BasicNameValuePair("ctl00$ddlLanguagePC", ""));
+
+        List<NameValuePair> addGoodActionHeaders = HttpClientUtil
+                .createRequestHeader(BaseParameters.TAKE_ORDER_ACTION_URI, currentContext);
+
+        HttpPost addGoodActionPost = new HttpPost(BaseParameters.TAKE_ORDER_ACTION_URI);
+        addGoodActionPost
+                .setEntity(new UrlEncodedFormEntity(confirmTernimalAndDateFromParams, Charset.forName("utf-8")));
+
+        HttpClientUtilModel addGoodActionModel = HttpClientUtil.defaultRequest(addGoodActionHeaders, addGoodActionPost,
+                currentContext, true, false, null);
+
+        LOG.info("1");
     }
 
     // choose department date and terminal
-    private Map<String, String> takeOrderAction() throws Exception {
+    public Map<String, String> takeOrderAction() throws Exception {
         LOG.info("take order action begin");
         Map<String, String> formMap = null;
         Map<String, String> nextformMap = new LinkedHashMap<>();
@@ -182,12 +219,11 @@ public class AutoPlaceOrderService {
             formMap = createTakeOrderActionFormMap();
             UrlEncodedFormEntity formEntity = mapToFormEntity(formMap);
             // header
-            List<NameValuePair> headers = createDefaultRequestHeader(BaseParameters.TAKE_ORDER_ACTION_URI);
+            List<NameValuePair> headers = null;
             HttpPost post = new HttpPost(BaseParameters.TAKE_ORDER_ACTION_URI);
-            post.setConfig(singleRequestConfig);
             post.setEntity(formEntity);
             // String html = clientUtil.defaultRequest(headers, post, true);
-            String html = defaultRequest(headers, post, true);
+            String html = null;
             Document doc = Jsoup.parse(html);
             for (String s : AIR_PORT_POST_PARAMS) {
                 nextformMap.put(s, fetchElementValueAttrWithId(doc, s));
@@ -202,7 +238,7 @@ public class AutoPlaceOrderService {
     /**
      * confirm airline info page
      */
-    private Map<String, String> confirmAirportInfo(Map<String, String> formMap) throws Exception {
+    public Map<String, String> confirmAirportInfo(Map<String, String> formMap) throws Exception {
         LOG.info(" confirm air port info begin ");
         // generate formMap
         Map<String, String> nextformMap = new LinkedHashMap<>();
@@ -223,13 +259,13 @@ public class AutoPlaceOrderService {
             formMap.put("ctl00$cphMain$UC_BoardingInput$txtInq", requireInfo.getSearchWords());
             formMap.put("__EVENTTARGET", "ctl00$cphMain$UC_BoardingInput$TxtFlightNumber");
             formMap.put("__ASYNCPOST", "true");
-            List<NameValuePair> headers = createDefaultRequestHeader(BaseParameters.TAKE_ORDER_ACTION_URI);
+            List<NameValuePair> headers = null;
+            ;
             UrlEncodedFormEntity confirmPostEntity = mapToFormEntity(formMap);
             HttpPost confirmPost = new HttpPost(BaseParameters.BOARDING_INFO_INPUT_URI);
-            confirmPost.setConfig(singleRequestConfig);
             confirmPost.setEntity(confirmPostEntity);
 
-            String html = defaultRequest(headers, confirmPost, true);
+            String html = null;
             // remove the following params in map
             formMap.remove("ctl00$cphMain$ScriptManager1");
             formMap.remove("__ASYNCPOST");
@@ -240,14 +276,13 @@ public class AutoPlaceOrderService {
             Collections.addAll(replacedParams, "__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTVALIDATION");
             subAndReplaceParams(html, formMap, replacedParams);
 
-            List<NameValuePair> boardingHeaders = createDefaultRequestHeader(BaseParameters.BOARDING_INFO_INPUT_URI);
+            List<NameValuePair> boardingHeaders = null;
             UrlEncodedFormEntity boardingPostEntity = mapToFormEntity(formMap);
 
             HttpPost boardingPost = new HttpPost(BaseParameters.BOARDING_INFO_INPUT_URI);
-            boardingPost.setConfig(singleRequestConfig);
             boardingPost.setEntity(boardingPostEntity);
             long s1 = System.currentTimeMillis();
-            String checkInfoHtml = defaultRequest(boardingHeaders, boardingPost, true);
+            String checkInfoHtml = null;
             LOG.info("confirmAirportInfo send request use time :{}", (System.currentTimeMillis() - s1));
 
             Document doc = Jsoup.parse(checkInfoHtml);
@@ -280,19 +315,17 @@ public class AutoPlaceOrderService {
     /**
      * confirm payment type
      */
-    private Map<String, String> confirmPaymentInfo(Map<String, String> checkInfoFormMap) throws Exception {
+    public Map<String, String> confirmPaymentInfo(Map<String, String> checkInfoFormMap) throws Exception {
         LOG.info("confirm payment begin");
         // first,confirm airport and department and termimal info
         Map<String, String> nextFormMap = new LinkedHashMap<>();
         try {
-            List<NameValuePair> configFeforeInfoHeaders = createDefaultRequestHeader(
-                    BaseParameters.BOARDING_INFO_CHECK_URI);
+            List<NameValuePair> configFeforeInfoHeaders = null;
             UrlEncodedFormEntity configFeforeInfoEntity = mapToFormEntity(checkInfoFormMap);
 
             HttpPost configFeforeInfoPost = new HttpPost(BaseParameters.BOARDING_INFO_CHECK_URI);
             configFeforeInfoPost.setEntity(configFeforeInfoEntity);
-            configFeforeInfoPost.setConfig(singleRequestConfig);
-            String paymentDetailHtml = defaultRequest(configFeforeInfoHeaders, configFeforeInfoPost, true);
+            String paymentDetailHtml = null;
 
             Document doc = Jsoup.parse(paymentDetailHtml);
             Map<String, String> paySelectChooseFormMap = new LinkedHashMap<>();
@@ -327,11 +360,10 @@ public class AutoPlaceOrderService {
             paySelectChooseFormMap.put("__ASYNCPOST", "true");
             UrlEncodedFormEntity paySelectChooseEntity = mapToFormEntity(paySelectChooseFormMap);
 
-            List<NameValuePair> paySelectHeaders = createDefaultRequestHeader(BaseParameters.PAY_SELECT_URI);
+            List<NameValuePair> paySelectHeaders = null;
             HttpPost paySelectPost = new HttpPost(BaseParameters.PAY_SELECT_URI);
             paySelectPost.setEntity(paySelectChooseEntity);
-            paySelectPost.setConfig(singleRequestConfig);
-            String paymenSelectPage = defaultRequest(paySelectHeaders, paySelectPost, true);
+            String paymenSelectPage = null;
 
             Set<String> needReplacedParams = new HashSet<>();
             Collections.addAll(needReplacedParams, "__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTVALIDATION");
@@ -348,9 +380,8 @@ public class AutoPlaceOrderService {
             paySelectChooseFormMap.remove("__ASYNCPOST");
             HttpPost paymenConfirmPost = new HttpPost(BaseParameters.PAY_SELECT_URI);
             paymenConfirmPost.setEntity(mapToFormEntity(paySelectChooseFormMap));
-            paymenConfirmPost.setConfig(singleRequestConfig);
             long s1 = System.currentTimeMillis();
-            String finalConfirmPage = defaultRequest(paySelectHeaders, paymenConfirmPost, true);
+            String finalConfirmPage = null;
             LOG.info("confirmPaymentInfo send request use time :{}", (System.currentTimeMillis() - s1));
             Document finalConfirmPageDoc = Jsoup.parse(finalConfirmPage);
             for (String key : FINAL_CHECK_POST_PARAMS) {
@@ -364,17 +395,16 @@ public class AutoPlaceOrderService {
     }
 
     // final info confirm
-    private void finalConfirm(Map<String, String> finalInfoFormMap) throws Exception {
+    public void finalConfirm(Map<String, String> finalInfoFormMap) throws Exception {
         LOG.info("final info confirm begin");
         try {
             finalInfoFormMap.put("__EVENTTARGET", "ctl00$cphMain$lbtnRegist");
-            List<NameValuePair> headers = createDefaultRequestHeader(BaseParameters.FINAL_CHECK_URI);
+            List<NameValuePair> headers = null;
             HttpPost post = new HttpPost(BaseParameters.FINAL_CHECK_URI);
-            post.setConfig(singleRequestConfig);
             UrlEncodedFormEntity formEntity = mapToFormEntity(finalInfoFormMap);
             post.setEntity(formEntity);
             long s1 = System.currentTimeMillis();
-            String html = defaultRequest(headers, post, true);
+            String html = null;
             LOG.info("finalConfirm send request use time :{}", (System.currentTimeMillis() - s1));
             String val = getTextWithClassName(Jsoup.parse(html), "completed_screen");
             LOG.info("final info confirm end , order id : {}", val);
@@ -388,10 +418,9 @@ public class AutoPlaceOrderService {
         try {
             Map<String, String> formMap = new LinkedHashMap<>();
             // headers
-            List<NameValuePair> headers = createDefaultRequestHeader(BaseParameters.TAKE_ORDER_ACTION_URI);
+            List<NameValuePair> headers = null;
             HttpGet get = new HttpGet(BaseParameters.TAKE_ORDER_ACTION_URI);
-            get.setConfig(singleRequestConfig);
-            String html = defaultRequest(headers, get, true);
+            String html = null;
             // form params
             Document doc = Jsoup.parse(html);
             for (String s : TAKE_ORDER_POST_PARAMS) {
@@ -425,7 +454,7 @@ public class AutoPlaceOrderService {
     // confirm ternimal and pick date !! use a long to find this action in website
     private void confirmTimeAndTerminalChoose(Map<String, String> requireMap) throws Exception {
         // header
-        List<NameValuePair> headers = createDefaultRequestHeader(BaseParameters.TAKE_ORDER_ACTION_URI);
+        List<NameValuePair> headers = null;
         // the form map some key may need dynamic create values is fixed or come from
         // requireMap
         List<NameValuePair> formParams = new ArrayList<>();
@@ -463,9 +492,8 @@ public class AutoPlaceOrderService {
         formParams.add(new BasicNameValuePair("__ASYNCPOST", "true"));
         UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(formParams, Charset.forName("UTF-8"));
         HttpPost post = new HttpPost(BaseParameters.TAKE_ORDER_ACTION_URI);
-        post.setConfig(singleRequestConfig);
         post.setEntity(formEntity);
-        String html = defaultRequest(headers, post, true);
+        String html = null;
         HashSet<String> replacedParams = new HashSet<>();
         Collections.addAll(replacedParams, "__VIEWSTATE");
         subAndReplaceParams(html, requireMap, replacedParams);
@@ -496,7 +524,41 @@ public class AutoPlaceOrderService {
                                 : new__VIEWSTATEArr[i + 1]);
             }
         }
+    }
 
+    /**
+     * 
+     * @param html
+     * @param list
+     * @param needReplacedParams
+     * @throws Exception
+     */
+    private void subAndReplaceParams(String html, List<NameValuePair> list, List<String> needReplacedParams)
+            throws Exception {
+        if (StringUtils.isBlank(html) || CollectionUtils.isEmpty(needReplacedParams)) {
+            throw new Exception("require params is empty >>{html} >>{Map<String, String> map}");
+        }
+
+        String[] newArr = html.substring(html.lastIndexOf("\n")).trim().split("\\|");
+
+        if (newArr.length < 3) {
+            throw new Exception("the length is too short after sub the html");
+        }
+
+        int size = list.size();
+
+        int newArrLength = newArr.length;
+
+        for (int i = 0; i < size; i++) {
+            NameValuePair pair = list.get(i);
+            if (needReplacedParams.contains(pair.getName())) {
+                for (int j = 0; j < newArrLength; j++) {
+                    if (newArr[j].equals(pair.getName())) {
+                        list.set(i, new BasicNameValuePair(pair.getName(), newArr[j + 1]));
+                    }
+                }
+            }
+        }
     }
 
     private UrlEncodedFormEntity mapToFormEntity(Map<String, String> formMap) throws Exception {

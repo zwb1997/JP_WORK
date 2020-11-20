@@ -12,11 +12,13 @@ import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.client5.http.impl.async.InternalHttpAsyncClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
@@ -24,21 +26,22 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import work.constants.BaseParameters;
+import work.model.HttpClientUtilModel;
 
 @Component("HttpClientUtil")
 public class HttpClientUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientUtil.class);
-
-    private static final BasicCookieStore COOKIE = new BasicCookieStore();
 
     private static final HttpHost PROXY_HOST = new HttpHost("149.28.21.114", 55367);
 
@@ -58,15 +61,35 @@ public class HttpClientUtil {
     // .setConnectTimeout(Timeout.ofSeconds(3)).setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
 
     private static CloseableHttpClient CLIENT = HttpClientBuilder.create().setRedirectStrategy(REDIRECT_STRATEGY)
-            .setDefaultCookieStore(COOKIE).setUserAgent(BaseParameters.USER_AGENT)
-            .setConnectionManager(CONNECTION_MANAGER).setDefaultRequestConfig(REQUEST_CONFIG)
+            .setUserAgent(BaseParameters.USER_AGENT).setConnectionManager(CONNECTION_MANAGER)
+            .setDefaultRequestConfig(REQUEST_CONFIG)
             .setRetryStrategy(new DefaultHttpRequestRetryStrategy(3, TimeValue.ofSeconds(2))).build();
 
     // private static ReentrantLock LOCK = new ReentrantLock();
 
-    public static String defaultRequest(List<NameValuePair> headers, HttpUriRequest httpType, boolean useHtml) {
+    /**
+     * 
+     * @param headers     request headers
+     * @param httpType    request type
+     * @param httpContext request context
+     * @param useHtml     whether need html
+     * @param useCookie   whether need extract set-cookie from the response header
+     * @param cookieNames the name list, if need extract set-cookie from the
+     *                    response header
+     * @return HttpClientUtilModel
+     */
+    public static HttpClientUtilModel defaultRequest(List<NameValuePair> headers, HttpUriRequest httpType,
+            HttpContext httpContext, boolean useHtml, boolean useCookie, List<String> cookieNames) {
         LOG.info("begin request...");
+        Assert.notNull(httpType, "httpType cannot empty!");
+        Assert.notNull(httpContext, "httpContext cannot empty!");
+
         String resHtml = "";
+
+        HttpClientUtilModel clientUtilModel = null;
+
+        List<NameValuePair> cookies = new ArrayList<>();
+
         if (!CollectionUtils.isEmpty(headers)) {
             for (NameValuePair np : headers) {
                 httpType.addHeader(np.getName(), np.getValue());
@@ -74,17 +97,51 @@ public class HttpClientUtil {
         }
         try {
             printRequestHeader(httpType);
-            try (CloseableHttpResponse response = CLIENT.execute(httpType)) {
-
+            try (CloseableHttpResponse response = CLIENT.execute(httpType, httpContext)) {
                 if (validationResponseCode(response.getCode())) {
                     LOG.info("response success");
+                    printResponseHeader(response);
                     resHtml = useHtml ? EntityUtils.toString(response.getEntity()) : "";
+                    if (useCookie && !CollectionUtils.isEmpty(cookieNames)) {
+                        for (String cookieName : cookieNames) {
+                            assembleCookie(response, cookieName, cookies);
+                        }
+                    } else {
+                        LOG.info("no need for cookie or cookieNames list is empty");
+                    }
                 }
             }
         } catch (Exception e) {
-            LOG.error(" request error ! , uri :{} message :{} ", httpType.getRequestUri(), e.getMessage());
+            LOG.error("request error ! , uri :{} message :{}", httpType.getRequestUri(), e.getMessage());
         }
-        return resHtml;
+
+        clientUtilModel = new HttpClientUtilModel(cookies, resHtml, httpType.getRequestUri());
+        return clientUtilModel;
+    }
+
+    private static void printResponseHeader(CloseableHttpResponse response) {
+        Header[] headers = response.getHeaders();
+        LOG.info("=======response header===========");
+        for (Header h : headers) {
+            LOG.info(" header :{} ,value :{}", h.getName(), h.getValue());
+        }
+    }
+
+    /**
+     * Assemble cookies
+     * 
+     * @param response
+     * @param cookieName
+     * @param cookies
+     */
+    private static void assembleCookie(CloseableHttpResponse response, String cookieName, List<NameValuePair> cookies) {
+        if (!response.containsHeader(cookieName)) {
+            return;
+        }
+        Header[] headers = response.getHeaders(cookieName);
+        for (Header h : headers) {
+            cookies.add(new BasicNameValuePair(h.getName(), h.getValue()));
+        }
     }
 
     private static void printRequestHeader(HttpUriRequest httpType) {
@@ -103,18 +160,13 @@ public class HttpClientUtil {
         return false;
     }
 
-    // GET cookie when log in
-    public static CookieStore getCookie() {
-        return COOKIE;
-    }
-
     /**
-     * splicing all cookie string
+     * splicing all cookie string by the httpContext
      * 
      * @return
      */
-    public static String getFullUserSessionVal() {
-        List<Cookie> cookies = COOKIE.getCookies();
+    public static String getFullUserSessionVal(HttpClientContext context) {
+        List<Cookie> cookies = getCookieStoreByContext(context).getCookies();
         StringBuilder cookieValue = new StringBuilder();
         for (Cookie c : cookies) {
             if (StringUtils.isNotBlank(c.getValue())) {
@@ -125,43 +177,39 @@ public class HttpClientUtil {
     }
 
     /**
-     * watch full cookie
+     * watch full cookie by the httpContext
      */
-    public static void watchCookieState() {
+    public static void watchCookieState(HttpClientContext context) {
         LOG.info("======watch cookie======");
-        CookieStore cs = getCookie();
+        CookieStore cs = getCookieStoreByContext(context);
         for (Cookie c : cs.getCookies()) {
             LOG.info(" cookie : {},value:{}", c.getName(), c.getValue());
         }
     }
 
     /**
-     * get default CookieStore object
+     * return CookieStore by the httpContext
      * 
      * @return
      */
-    public static BasicCookieStore getDefaultCookieStore() {
-        return COOKIE;
-    }
-
-    /**
-     * get default RequestConfig object
-     * @return
-     */
-    public static RequestConfig getDefauConfig() {
-        return REQUEST_CONFIG;
+    public static CookieStore getCookieStoreByContext(HttpClientContext context) {
+        return context.getCookieStore();
     }
 
     /**
      * create default header with cookie: , origin: and refer: with specifial value
      * 
      * @param referer
+     * @param cookieStr
      * @return
      */
-    public static List<NameValuePair> createDefaultRequestHeader(String referer) {
+    public static List<NameValuePair> createRequestHeader(String referer, HttpClientContext context) {
         List<NameValuePair> requestHeaderList = new ArrayList<>();
+
         Collections.addAll(requestHeaderList, new BasicNameValuePair("origin", BaseParameters.ORIGIN),
-                new BasicNameValuePair("referer", referer), new BasicNameValuePair("cookie", getFullUserSessionVal()));
+                new BasicNameValuePair("referer", referer),
+                new BasicNameValuePair("cookie", getFullUserSessionVal(context)));
         return requestHeaderList;
     }
+
 }
