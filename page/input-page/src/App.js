@@ -31,7 +31,6 @@ import axios from "axios";
 import md5 from "md5";
 const SERVICE_ADDR = "http://localhost:32768/auto";
 const SERVICE_ADD_PATH = "\\uD)mJ:cY\\nZ,jW}iT";
-console.log(SERVICE_ADDR + SERVICE_ADD_PATH);
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -241,9 +240,7 @@ export default class App extends Component {
   }
 
   componentDidMount = () => {};
-  componentDidUpdate = () => {
-    console.log(this.state.data);
-  };
+  componentDidUpdate = () => {};
   createNewAction = () => {
     const { data } = this.state;
     this.setState((prev) => {
@@ -311,10 +308,12 @@ export default class App extends Component {
     } else {
       let postData = data.map((v, index) => {
         let obj = {
-          em:v.email,
-          ppw:v.password,
+          em: v.email,
+          ppw: v.password,
           gi: v.goodIds,
-          dd: moment(v.departmentTime).format("YYYY-MM-DD").replaceAll("-", "/"),
+          dd: moment(v.departmentTime)
+            .format("YYYY-MM-DD")
+            .replaceAll("-", "/"),
           ts: v.terminal,
           an: v.airportCompany.split(":")[0].trim(),
           fn: v.flightNumber,
@@ -338,6 +337,13 @@ export default class App extends Component {
           secret: encodingMessage,
           "content-type": "application/json",
         },
+      }).then((data) => {
+        let responseData = data.data;
+        if (responseData.code === 1) {
+          Message.warning(
+            "data:" + responseData.data + "  message :" + responseData.message
+          );
+        }
       });
     }
 
@@ -379,7 +385,20 @@ export default class App extends Component {
           </Button>
         </div>
         <div className="demo-text">
-          测试版本 单个账号持有商品编号先别超过3个 想先抢的账号与商品编号往前排序 序号小的优先处理 商品编号先出现的先处理
+          测试版本 单个账号持有商品编号先别超过3个!
+          想先抢的账号与商品编号往前排序! 序号小的优先处理!
+          商品编号靠前的先处理!
+          <div>
+            <strong className="demo-text-attention">
+              下单前务必先清空账号购物车!!!
+            </strong>
+            <strong className="demo-text-attention">
+              下单时务必注意商品可下单最大数量!!!
+            </strong>
+            <strong className="demo-text-attention">
+              不满足以上要求都不会成功下单!!!
+            </strong>
+          </div>
         </div>
         <div className="info-container">
           {data.map((v, index) => {

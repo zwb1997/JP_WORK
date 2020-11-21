@@ -26,7 +26,6 @@ import work.constants.BaseParameters;
 import work.model.GoodModel;
 import work.model.HttpClientUtilModel;
 import work.model.RequireInfo;
-import work.service.orderservice.autoplaceorder.AutoLoginService;
 import work.service.orderservice.autoplaceorder.AutoPlaceOrderService;
 import work.util.PageUtil;
 
@@ -97,10 +96,7 @@ public class FlushPageWork implements Runnable {
         }
 
         LOG.info("flush page end good could buy now");
-        clientUtilModel.setReferer(uri);
-        AutoPlaceOrderService placeOrderService = new AutoPlaceOrderService(requireInfo, goodModel, clientUtilModel,
-                currentContext);
-        AutoLoginService loginService = new AutoLoginService(requireInfo, goodModel, clientUtilModel, currentContext);
+
         try {
             // directly add good to trolley
             List<NameValuePair> addGoodParamsLists = new ArrayList<>();
@@ -113,8 +109,9 @@ public class FlushPageWork implements Runnable {
                     PageUtil.getValueAttrWithSection(doc, "id", "__VIEWSTATEGENERATOR")));
             addGoodParamsLists.add(new BasicNameValuePair("__SCROLLPOSITIONX", "0"));
             addGoodParamsLists.add(new BasicNameValuePair("__SCROLLPOSITIONY", "0"));
-            addGoodParamsLists.add(new BasicNameValuePair("__EVENTVALIDATION",
-                    PageUtil.getValueAttrWithSection(doc, "id", "__EVENTVALIDATION")));
+
+            String __EVENTVALIDATION = PageUtil.getValueAttrWithSection(doc, "id", "__EVENTVALIDATION");
+            addGoodParamsLists.add(new BasicNameValuePair("__EVENTVALIDATION", __EVENTVALIDATION));
             addGoodParamsLists.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
             addGoodParamsLists.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
             addGoodParamsLists.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
@@ -126,10 +123,13 @@ public class FlushPageWork implements Runnable {
 
             UrlEncodedFormEntity addGoodEntity = new UrlEncodedFormEntity(addGoodParamsLists, Charset.forName("utf-8"));
 
-            placeOrderService.addGoodAction(addGoodEntity);
+            clientUtilModel.setReferer(uri);
 
-            // login
-            // confirm info service
+            AutoPlaceOrderService placeOrderService = new AutoPlaceOrderService(requireInfo, goodModel, clientUtilModel,
+                    currentContext);
+
+            // go service entry
+            placeOrderService.addGoodAction(addGoodEntity);
 
         } catch (Exception e) {
             LOG.error("auto place order service error", e);

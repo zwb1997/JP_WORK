@@ -33,6 +33,8 @@ public class BaseParameters {
     public static final String JSESSIONID_PARAMS_NAME = "JSESSIONID";
     public static final String GOOD_ADD_ACTION_GOOD_ID = "scd";
     public static final String GOOD_ADD_ACTION_GOOD_NAME = "su";
+    public static final String GOOD_ADD_ACTION_GOOD_COUNT = "JAT-EC-Cart";
+    public static final String COMPLETE_TEXT_CLASS_NAME= "completed_screen";
 
     //
     public static final String SECRET = "oN*mE?bX=yH%bJ]wD&qQ*uC^gA(cJ]iU]vP$hU(mI[eZ@fB.sA]zF{yF?bF.qQ@cJ=iR-aJ[pV+bS_qW?vB{zK*iY)yO;gZ+wU^oP]aT_zB'dS[lM-fX]wF]nQ#tR,pV*uV%iS'eN&wO+lP?zV)nW.";

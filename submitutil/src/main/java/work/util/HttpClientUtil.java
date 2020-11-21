@@ -7,15 +7,14 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
-import org.apache.hc.client5.http.impl.async.InternalHttpAsyncClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -54,11 +53,11 @@ public class HttpClientUtil {
             .create().setConnectionTimeToLive(Timeout.ofSeconds(10)).setDefaultSocketConfig(SOCKET_CONFIG)
             .setMaxConnPerRoute(20).setMaxConnTotal(50).setConnectionTimeToLive(TimeValue.ofSeconds(5)).build();
 
+    // private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(Timeout.ofSeconds(3))
+    //         .setConnectionRequestTimeout(Timeout.ofSeconds(3)).setProxy(PROXY_HOST).build();
+    
     private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(Timeout.ofSeconds(3))
-            .setConnectionRequestTimeout(Timeout.ofSeconds(3)).setProxy(PROXY_HOST).build();
-    // private static final RequestConfig REQUEST_REQUEST_CONFIG =
-    // RequestConfig.custom()
-    // .setConnectTimeout(Timeout.ofSeconds(3)).setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
+            .setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
 
     private static CloseableHttpClient CLIENT = HttpClientBuilder.create().setRedirectStrategy(REDIRECT_STRATEGY)
             .setUserAgent(BaseParameters.USER_AGENT).setConnectionManager(CONNECTION_MANAGER)
@@ -185,6 +184,14 @@ public class HttpClientUtil {
         for (Cookie c : cs.getCookies()) {
             LOG.info(" cookie : {},value:{}", c.getName(), c.getValue());
         }
+    }
+
+    /**
+     * add cookie into current http context cookieStore
+     */
+    public static void addParamsIntoCookie(HttpClientContext context, BasicClientCookie cookie) {
+        CookieStore cookieStore = context.getCookieStore();
+        cookieStore.addCookie(cookie);
     }
 
     /**
