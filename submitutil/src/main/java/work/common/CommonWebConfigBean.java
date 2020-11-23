@@ -1,17 +1,20 @@
 package work.common;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.List;
 
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import work.common.interceptors.CommonInterceptor;
@@ -41,4 +44,9 @@ public class CommonWebConfigBean implements WebMvcConfigurer {
         converters.add(new MappingJackson2HttpMessageConverter(builder.build()));
     }
 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/resources/**").addResourceLocations("classpath:/public/")
+                .setCacheControl(CacheControl.maxAge(Duration.ofDays(365)));
+    }
 }

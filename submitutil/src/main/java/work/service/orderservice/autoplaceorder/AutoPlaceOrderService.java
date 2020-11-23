@@ -1,25 +1,15 @@
 package work.service.orderservice.autoplaceorder;
 
-import static work.util.PageUtil.fetchElementValueAttrWithId;
-import static work.util.PageUtil.getTextWithClassName;
-import static work.util.PageUtil.getValueAttrWithSection;
-
-import java.io.BufferedReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
@@ -31,10 +21,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.yaml.snakeyaml.reader.StreamReader;
-
 import work.constants.BaseParameters;
 import work.model.GoodModel;
 import work.model.HttpClientUtilModel;
@@ -355,7 +342,7 @@ public class AutoPlaceOrderService {
 
                 List<NameValuePair> beforePaymentHeaders = HttpClientUtil
                                 .createRequestHeader(BaseParameters.BOARDING_INFO_CHECK_URI, currentContext);
-                //这一步挂了
+                // 这一步挂了
                 HttpClientUtilModel beforePaymentModel = HttpClientUtil.defaultRequest(beforePaymentHeaders,
                                 beforePaymentPost, currentContext, true, false, null);
                 LOG.info("before payment end");
@@ -528,6 +515,7 @@ public class AutoPlaceOrderService {
                                                 if (newArr[j].equals(np.getName())) {
                                                         list.set(i, new BasicNameValuePair(np.getName(),
                                                                         newArr[j + 1]));
+                                                        break;
                                                 }
                                         }
                                 } catch (Exception e) {

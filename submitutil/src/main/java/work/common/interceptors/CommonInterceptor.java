@@ -28,30 +28,33 @@ public class CommonInterceptor implements HandlerInterceptor {
         int rPort = request.getRemotePort();
         LOG.warn("come new request ,remote addr >>{} ,remote port >>{} ,remote host >>{} ,remote user >>{}", rad, rPort,
                 rHost, rUser);
-        LOG.info("begin validate sign....");
-        if ("OPTIONS".equals(request.getMethod())) {
+
+        String methodName = request.getMethod();
+        if ("OPTIONS".equals(methodName)) {
             return true;
         }
-        String curStamp = request.getHeader("curstamp");
-        String secret = request.getHeader("secret");
-        if (StringUtils.isBlank(curStamp) || StringUtils.isBlank(secret)) {
-            LOG.info("lack curStamp or secret");
+        if ("POST".equals(methodName)) {
+            LOG.info("begin validate sign....");
+            String curStamp = request.getHeader("curstamp");
+            String secret = request.getHeader("secret");
+            if (StringUtils.isBlank(curStamp) || StringUtils.isBlank(secret)) {
+                LOG.info("lack curStamp or secret");
+                return flag;
+            }
+            flag = SignUtil.validateSecret(secret, curStamp);
             return flag;
         }
-        flag = SignUtil.validateSecret(secret, curStamp);
-        return flag;
+        return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
             ModelAndView modelAndView) throws Exception {
-        LOG.info("2");
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
             throws Exception {
-        LOG.info("3");
     }
 
 }

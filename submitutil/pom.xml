@@ -6,7 +6,7 @@
   <groupId>com.submitutil</groupId>
   <artifactId>submitutil</artifactId>
   <version>0.1</version>
-
+  <packaging>jar</packaging>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,6 +24,7 @@
     <common-lang3-version>3.11</common-lang3-version>
     <guava-version>29.0-jre</guava-version>
     <javax-servlet-api-version>4.0.1</javax-servlet-api-version>
+    <start.class>work.App</start.class>
   </properties>
 
   <dependencies>
@@ -123,6 +124,17 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>2.3.5.RELEASE</version>
+        <configuration>
+          <mainClass>${start.class}</mainClass>
+          <layout>ZIP</layout>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
