@@ -20,7 +20,7 @@ public class ThreadProvider {
     private static final Logger LOG = LoggerFactory.getLogger(ThreadProvider.class);
     private static final int CORE_POOL_SIZE = 4;
     private static final int MAX_CORE_POOL_SIZE = 8;
-    private static final long KEEP_ALIVE_TIME = 10 * 1000;
+    private static final long KEEP_ALIVE_TIME = 6 * 10;
     private static final TimeUnit TIME_UNIT = TimeUnit.SECONDS;
     private static final int BLOCKING_DEQUE_SIZE = 100;
     private static final LinkedBlockingDeque<Runnable> BLOCKING_DEQUE = new LinkedBlockingDeque<>(BLOCKING_DEQUE_SIZE);

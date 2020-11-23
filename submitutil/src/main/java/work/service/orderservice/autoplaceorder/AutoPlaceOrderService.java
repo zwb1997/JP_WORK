@@ -80,6 +80,8 @@ public class AutoPlaceOrderService {
                 post.setEntity(formEntity);
                 // use current cookie to add good to shopping trolley
                 HttpClientUtil.defaultRequest(headers, post, currentContext, false, false, null);
+
+                formEntity = null;
                 LOG.info("add good end");
 
                 List<NameValuePair> trolleyHeaders = HttpClientUtil.createRequestHeader(clientUtilModel.getReferer(),
@@ -88,7 +90,6 @@ public class AutoPlaceOrderService {
                 HttpGet visitTrolley = new HttpGet(BaseParameters.TAKE_ORDER_ACTION_URI);
                 HttpClientUtilModel visitTrolleyModel = HttpClientUtil.defaultRequest(trolleyHeaders, visitTrolley,
                                 currentContext, true, false, null);
-
                 // need stroage 'JAT-EC-Cart'
                 // storageCookieParams();
                 // extract params from visitTrolleyModel
@@ -136,7 +137,6 @@ public class AutoPlaceOrderService {
 
                 List<NameValuePair> confirnTernimalAndDateHeaders = HttpClientUtil
                                 .createRequestHeader(BaseParameters.TAKE_ORDER_ACTION_URI, currentContext);
-
                 HttpClientUtilModel confirnTernimalAndDateModel = HttpClientUtil.defaultRequest(
                                 confirnTernimalAndDateHeaders, confirnTernimalAndDatePost, currentContext, true, false,
                                 null);
@@ -160,6 +160,8 @@ public class AutoPlaceOrderService {
 
                 HttpClientUtilModel addGoodActionModel = HttpClientUtil.defaultRequest(addGoodActionHeaders,
                                 addGoodActionPost, currentContext, true, false, null);
+
+                confirmTernimalAndDateFromParams = null;
                 LOG.info("submit terminal and department date end");
                 // next login
 
@@ -188,6 +190,7 @@ public class AutoPlaceOrderService {
                 loginFormParams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
 
                 UrlEncodedFormEntity logiEntity = new UrlEncodedFormEntity(loginFormParams, Charset.forName("utf-8"));
+                loginFormParams = null;
                 HttpPost loginPost = new HttpPost(loginUrl);
                 loginPost.setEntity(logiEntity);
                 // logined ,get confirm airline info page
@@ -298,7 +301,7 @@ public class AutoPlaceOrderService {
 
                 HttpPost submitAirPortPost = new HttpPost(BaseParameters.BOARDING_INFO_INPUT_URI);
                 submitAirPortPost.setEntity(new UrlEncodedFormEntity(confirmAirParams, Charset.forName("utf-8")));
-
+                confirmAirParams = null;
                 HttpClientUtilModel afterSubmitAirPortModel = HttpClientUtil.defaultRequest(confirmAirPortInfoHeaders,
                                 submitAirPortPost, currentContext, true, false, null);
                 // end
@@ -339,7 +342,7 @@ public class AutoPlaceOrderService {
                 HttpPost beforePaymentPost = new HttpPost(BaseParameters.BOARDING_INFO_CHECK_URI);
                 beforePaymentPost
                                 .setEntity(new UrlEncodedFormEntity(beforePaymentFormParams, Charset.forName("utf-8")));
-
+                beforePaymentFormParams = null;
                 List<NameValuePair> beforePaymentHeaders = HttpClientUtil
                                 .createRequestHeader(BaseParameters.BOARDING_INFO_CHECK_URI, currentContext);
                 // 这一步挂了
@@ -418,6 +421,8 @@ public class AutoPlaceOrderService {
 
                 paymentConfirmPost.setEntity(new UrlEncodedFormEntity(payselectFormParams, Charset.forName("utf-8")));
 
+                payselectFormParams = null;
+
                 HttpClientUtilModel afterPaymentModel = HttpClientUtil.defaultRequest(payselectHeaders,
                                 paymentConfirmPost, currentContext, true, false, null);
                 LOG.info("after payment end");
@@ -469,7 +474,7 @@ public class AutoPlaceOrderService {
 
                 HttpPost finalConfirmPost = new HttpPost(BaseParameters.FINAL_CHECK_URI);
                 finalConfirmPost.setEntity(new UrlEncodedFormEntity(finalConfirmFormParams, Charset.forName("utf-8")));
-
+                finalConfirmFormParams = null;
                 HttpClientUtilModel finalConfirmModel = HttpClientUtil.defaultRequest(finalConfirmHeaders,
                                 finalConfirmPost, currentContext, true, false, null);
 
