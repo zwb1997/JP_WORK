@@ -6,7 +6,7 @@ import java.util.List;
 import work.model.GoodModel;
 
 public class BaseParameters {
-    public static final String DEMO_USER = "daadsa12323@protonmail.com";
+    // public static final String DEMO_USER = "daadsa12323@protonmail.com";
     // public static final String DEMO_USER = "";
     // public static final String DEMO_USER = "";
     // public static final String DEMO_USER = "";
