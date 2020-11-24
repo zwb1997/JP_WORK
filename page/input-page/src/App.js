@@ -29,13 +29,15 @@ import {
 import moment from "moment";
 import axios from "axios";
 import md5 from "md5";
-const SERVICE_ADDR = "http://localhost:32768/auto";
+const SERVICE_ADDR = "http://45.76.213.212:32768/auto";
+// const SERVICE_ADDR = "http://localhost:32768/auto";
 const SERVICE_ADD_PATH = "\\uD)mJ:cY\\nZ,jW}iT";
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       showDialog: false,
+      disableSubmit: false,
       data: [
         {
           email: "",
@@ -281,7 +283,7 @@ export default class App extends Component {
     });
   };
   submitAction = () => {
-    let { data, showDialog } = this.state;
+    let { data, showDialog,disableSubmit } = this.state;
     let t = false;
     for (let i = 0; i < data.length; i++) {
       for (let name in data[i]) {
@@ -289,7 +291,7 @@ export default class App extends Component {
           continue;
         }
         if (
-          data[i].goodIds.split(";").length > 3 ||
+          data[i].goodIds.split(";").length > 1 ||
           data[i][name] === null ||
           data[i][name] === "" ||
           data[i][name] === undefined
@@ -302,7 +304,7 @@ export default class App extends Component {
     // if any unfilled params return;
     if (t) {
       Message({
-        message: "存在未填项 或 单个账号持有商品号超过三个",
+        message: "存在未填项 或 单个账号持有商品号超过1个",
         type: "error",
       });
     } else {
@@ -345,12 +347,18 @@ export default class App extends Component {
           );
         }
       });
+      Message({
+        message: "存在未填项 或 单个账号持有商品号超过1个",
+        type: "error",
+      });
     }
 
     //axios
     this.setState((prev) => {
       showDialog = false;
+      disableSubmit = true;
       return {
+        disableSubmit,
         showDialog,
       };
     });
@@ -370,6 +378,7 @@ export default class App extends Component {
       destinationList,
       whetherChangeFlight,
       showDialog,
+      disableSubmit,
     } = this.state;
     return (
       <div className="container">
@@ -385,7 +394,7 @@ export default class App extends Component {
           </Button>
         </div>
         <div className="demo-text">
-          测试版本 单个账号持有商品编号先别超过3个!
+          测试版本 单个账号持有商品编号先别超过1个!
           想先抢的账号与商品编号往前排序! 序号小的优先处理!
           商品编号靠前的先处理!
           <div>
@@ -458,7 +467,7 @@ export default class App extends Component {
                             作为分隔符号,商品编号与商品数量以
                             <strong>英文输入法</strong>中的
                             <strong>'&nbsp;:&nbsp;'</strong>
-                            作为分隔符. 输入示范 5201230131:1;5201230132:1
+                            作为分隔符. 输入示范 5201230131:1;
                           </div>
                         }
                       >
@@ -662,6 +671,7 @@ export default class App extends Component {
         </div>
         <div className="submit-action">
           <Button
+            disabled={disableSubmit}
             variant="contained"
             color="primary"
             onClick={() => {
