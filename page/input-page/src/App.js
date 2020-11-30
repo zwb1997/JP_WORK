@@ -29,8 +29,8 @@ import {
 import moment from "moment";
 import axios from "axios";
 import md5 from "md5";
-const SERVICE_ADDR = "http://45.76.213.212:32768/auto";
-// const SERVICE_ADDR = "http://localhost:32768/auto";
+// const SERVICE_ADDR = "http://45.76.213.212:32768/auto";
+const SERVICE_ADDR = "http://localhost:32768/auto";
 const SERVICE_ADD_PATH = "\\uD)mJ:cY\\nZ,jW}iT";
 export default class App extends Component {
   constructor(props) {
@@ -51,6 +51,7 @@ export default class App extends Component {
           receiver: "",
           searchText: "",
           goodIds: "",
+          whetherLimitedGood: "0",
         },
       ],
       airportCompanyList: [
@@ -164,7 +165,6 @@ export default class App extends Component {
         "4:意大利",
         "5:印度",
         "147:印尼",
-        ":请选择目的地",
         "3:英国",
         "35:越南",
         "149:Dubai",
@@ -238,6 +238,16 @@ export default class App extends Component {
           value: "rdoYes",
         },
       ],
+      whetherLimitedGoodList: [
+        {
+          label: "否",
+          value: "0",
+        },
+        {
+          label: "是",
+          value: "1",
+        },
+      ],
     };
   }
 
@@ -258,6 +268,7 @@ export default class App extends Component {
         receiver: "",
         searchText: "",
         goodIds: "",
+        whetherLimitedGood: "0",
       });
       return {
         data,
@@ -283,7 +294,7 @@ export default class App extends Component {
     });
   };
   submitAction = () => {
-    let { data, showDialog,disableSubmit } = this.state;
+    let { data, showDialog, disableSubmit } = this.state;
     let t = false;
     for (let i = 0; i < data.length; i++) {
       for (let name in data[i]) {
@@ -323,6 +334,7 @@ export default class App extends Component {
           sw: v.searchText,
           r: v.receiver,
           cf: v.whetherChangeFlight,
+          wlg: v.whetherLimitedGood,
         };
         return obj;
       });
@@ -371,7 +383,7 @@ export default class App extends Component {
     });
   };
   render() {
-    const {
+    let {
       data,
       terminals,
       airportCompanyList,
@@ -379,7 +391,16 @@ export default class App extends Component {
       whetherChangeFlight,
       showDialog,
       disableSubmit,
+      whetherLimitedGoodList,
     } = this.state;
+    airportCompanyList = airportCompanyList.sort();
+    destinationList.sort((a, b) => {
+      let numA = a.split(":");
+      let numB = b.split(":");
+      let num1 = Number.parseInt(numA[0]);
+      let num2 = Number.parseInt(numB[0]);
+      return num1 - num2;
+    });
     return (
       <div className="container">
         <div className="create-action">
@@ -639,6 +660,33 @@ export default class App extends Component {
                                 event,
                                 obj,
                                 "whetherChangeFlight",
+                                index
+                              )
+                            }
+                          ></Radio>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="info_part">
+                    <div className="info_part-title"> 是否为仅限定商品 </div>
+                    {whetherLimitedGoodList.map((limitv, insideIndex) => {
+                      return (
+                        <div
+                          key={
+                            "whetherLimitedGoodList_radio_index_" + insideIndex
+                          }
+                        >
+                          {limitv.label}
+                          <Radio
+                            color="primary"
+                            checked={v.whetherLimitedGood === limitv.value}
+                            value={limitv.value}
+                            onChange={(event, obj) =>
+                              this.commonChangeHandler(
+                                event,
+                                obj,
+                                "whetherLimitedGood",
                                 index
                               )
                             }

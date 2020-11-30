@@ -345,89 +345,16 @@ public class AutoPlaceOrderService {
                 beforePaymentFormParams = null;
                 List<NameValuePair> beforePaymentHeaders = HttpClientUtil
                                 .createRequestHeader(BaseParameters.BOARDING_INFO_CHECK_URI, currentContext);
-                // 这一步挂了
+
                 HttpClientUtilModel beforePaymentModel = HttpClientUtil.defaultRequest(beforePaymentHeaders,
                                 beforePaymentPost, currentContext, true, false, null);
                 LOG.info("before payment end");
                 // end
 
                 // then choose reserve
-                Document payselectDoc = Jsoup.parse(beforePaymentModel.getHtml());
-                List<NameValuePair> payselectFormParams = new ArrayList<>(27);
-                payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$ScriptManager1",
-                                "ctl00$cphMain$udpPayMode|ctl00$cphMain$rdoLocal"));
-                payselectFormParams.add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$rdoLocal"));
-                payselectFormParams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
-                payselectFormParams.add(new BasicNameValuePair("__LASTFOCUS", ""));
-                payselectFormParams.add(new BasicNameValuePair("__VIEWSTATE",
-                                PageUtil.fetchElementValueAttrWithId(payselectDoc, "__VIEWSTATE")));
-                payselectFormParams.add(new BasicNameValuePair("__VIEWSTATEGENERATOR",
-                                PageUtil.fetchElementValueAttrWithId(payselectDoc, "__VIEWSTATEGENERATOR")));
-                payselectFormParams.add(new BasicNameValuePair("__EVENTVALIDATION",
-                                PageUtil.fetchElementValueAttrWithId(payselectDoc, "__EVENTVALIDATION")));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguagePC", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$inputPcSearch", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$payment", "rdoLocal"));
 
-                BasicNameValuePair n1 = new BasicNameValuePair("ctl00$cphMain$regist", "rdoNewCard");
-                BasicNameValuePair n2 = new BasicNameValuePair("ctl00$cphMain$txtCardNo", "");
-                BasicNameValuePair n3 = new BasicNameValuePair("ctl00$cphMain$ddlMonth", "00");
-                BasicNameValuePair n4 = new BasicNameValuePair("ctl00$cphMain$ddlYear", "0000");
-                BasicNameValuePair n5 = new BasicNameValuePair("ctl00$cphMain$txtCardHolder", "");
-                BasicNameValuePair n6 = new BasicNameValuePair("ctl00$cphMain$txtSecurityCode", "");
-
-                payselectFormParams.add(n1);
-                payselectFormParams.add(n2);
-                payselectFormParams.add(n3);
-                payselectFormParams.add(n4);
-                payselectFormParams.add(n5);
-                payselectFormParams.add(n6);
-
-                payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnCardNo", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnCardNoToken", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnResultCode", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdn3DToken", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnHash", ""));
-                payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
-                payselectFormParams.add(new BasicNameValuePair("__ASYNCPOST", "true"));
-
-                List<NameValuePair> payselectHeaders = HttpClientUtil.createRequestHeader(BaseParameters.PAY_SELECT_URI,
-                                currentContext);
-
-                HttpPost payselectPost = new HttpPost(BaseParameters.PAY_SELECT_URI);
-
-                payselectPost.setEntity(new UrlEncodedFormEntity(payselectFormParams, Charset.forName("utf-8")));
-
-                HttpClientUtilModel payselectModel = HttpClientUtil.defaultRequest(payselectHeaders, payselectPost,
-                                currentContext, true, false, null);
-
-                payselectFormParams.remove(0);
-                payselectFormParams.remove(payselectFormParams.size() - 1);
-                payselectFormParams.set(0, new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$lbtnHdnReg"));
-                subAndReplaceParams(payselectModel.getHtml(), payselectFormParams,
-                                Arrays.asList("__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTVALIDATION"));
-
-                payselectFormParams.remove(n1);
-                payselectFormParams.remove(n2);
-                payselectFormParams.remove(n3);
-                payselectFormParams.remove(n4);
-                payselectFormParams.remove(n5);
-                payselectFormParams.remove(n6);
-
-                HttpPost paymentConfirmPost = new HttpPost(BaseParameters.PAY_SELECT_URI);
-
-                paymentConfirmPost.setEntity(new UrlEncodedFormEntity(payselectFormParams, Charset.forName("utf-8")));
-
-                payselectFormParams = null;
-
-                HttpClientUtilModel afterPaymentModel = HttpClientUtil.defaultRequest(payselectHeaders,
-                                paymentConfirmPost, currentContext, true, false, null);
-                LOG.info("after payment end");
-
-                Document afterPaymentPage = Jsoup.parse(afterPaymentModel.getHtml());
+                // Document afterPaymentPage = Jsoup.parse(afterPaymentModel.getHtml());
+                Document afterPaymentPage = doPay(beforePaymentModel);
 
                 List<NameValuePair> finalConfirmFormParams = new ArrayList<>(22);
                 finalConfirmFormParams.add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$lbtnRegist"));
@@ -487,6 +414,132 @@ public class AutoPlaceOrderService {
                 String completeText = PageUtil.getTextWithClassName(finalConfirmDoc,
                                 BaseParameters.COMPLETE_TEXT_CLASS_NAME);
                 LOG.info("success, text >>\"{}\"", completeText);
+        }
+
+        private Document doPay(HttpClientUtilModel beforePaymentModel) throws Exception {
+
+                HttpClientUtilModel afterPaymentModel = null;
+
+                List<NameValuePair> payselectHeaders = HttpClientUtil.createRequestHeader(BaseParameters.PAY_SELECT_URI,
+                                currentContext);
+
+                List<NameValuePair> payselectFormParams = null;
+
+                Document payselectDoc = Jsoup.parse(beforePaymentModel.getHtml());
+
+                if (requireInfo.getWhetherLimitedGood().equals(BaseParameters.WHETHER_LIMIT_GOOD_FALSE)) {
+                        payselectFormParams = new ArrayList<>(27);
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$ScriptManager1",
+                                        "ctl00$cphMain$udpPayMode|ctl00$cphMain$rdoLocal"));
+                        payselectFormParams.add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$rdoLocal"));
+                        payselectFormParams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
+                        payselectFormParams.add(new BasicNameValuePair("__LASTFOCUS", ""));
+                        payselectFormParams.add(new BasicNameValuePair("__VIEWSTATE",
+                                        PageUtil.fetchElementValueAttrWithId(payselectDoc, "__VIEWSTATE")));
+                        payselectFormParams.add(new BasicNameValuePair("__VIEWSTATEGENERATOR",
+                                        PageUtil.fetchElementValueAttrWithId(payselectDoc, "__VIEWSTATEGENERATOR")));
+                        payselectFormParams.add(new BasicNameValuePair("__EVENTVALIDATION",
+                                        PageUtil.fetchElementValueAttrWithId(payselectDoc, "__EVENTVALIDATION")));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguagePC", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$inputPcSearch", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$payment", "rdoLocal"));
+
+                        BasicNameValuePair n1 = new BasicNameValuePair("ctl00$cphMain$regist", "rdoNewCard");
+                        BasicNameValuePair n2 = new BasicNameValuePair("ctl00$cphMain$txtCardNo", "");
+                        BasicNameValuePair n3 = new BasicNameValuePair("ctl00$cphMain$ddlMonth", "00");
+                        BasicNameValuePair n4 = new BasicNameValuePair("ctl00$cphMain$ddlYear", "0000");
+                        BasicNameValuePair n5 = new BasicNameValuePair("ctl00$cphMain$txtCardHolder", "");
+                        BasicNameValuePair n6 = new BasicNameValuePair("ctl00$cphMain$txtSecurityCode", "");
+
+                        payselectFormParams.add(n1);
+                        payselectFormParams.add(n2);
+                        payselectFormParams.add(n3);
+                        payselectFormParams.add(n4);
+                        payselectFormParams.add(n5);
+                        payselectFormParams.add(n6);
+
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnCardNo", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnCardNoToken", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnResultCode", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdn3DToken", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnHash", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
+                        payselectFormParams.add(new BasicNameValuePair("__ASYNCPOST", "true"));
+
+                        HttpPost payselectPost = new HttpPost(BaseParameters.PAY_SELECT_URI);
+
+                        payselectPost.setEntity(
+                                        new UrlEncodedFormEntity(payselectFormParams, Charset.forName("utf-8")));
+
+                        HttpClientUtilModel payselectModel = HttpClientUtil.defaultRequest(payselectHeaders,
+                                        payselectPost, currentContext, true, false, null);
+
+                        payselectFormParams.remove(0);
+                        payselectFormParams.remove(payselectFormParams.size() - 1);
+                        payselectFormParams.set(0, new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$lbtnHdnReg"));
+                        subAndReplaceParams(payselectModel.getHtml(), payselectFormParams,
+                                        Arrays.asList("__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTVALIDATION"));
+
+                        payselectFormParams.remove(n1);
+                        payselectFormParams.remove(n2);
+                        payselectFormParams.remove(n3);
+                        payselectFormParams.remove(n4);
+                        payselectFormParams.remove(n5);
+                        payselectFormParams.remove(n6);
+
+                        HttpPost paymentConfirmPost = new HttpPost(BaseParameters.PAY_SELECT_URI);
+
+                        paymentConfirmPost.setEntity(
+                                        new UrlEncodedFormEntity(payselectFormParams, Charset.forName("utf-8")));
+
+                        payselectFormParams = null;
+                        afterPaymentModel = HttpClientUtil.defaultRequest(payselectHeaders, paymentConfirmPost,
+                                        currentContext, true, false, null);
+
+                } else if (requireInfo.getWhetherLimitedGood().equals(BaseParameters.WHETHER_LIMIT_GOOD_TRUE)) {
+                        payselectFormParams = new ArrayList<>(19);
+                        payselectFormParams.add(new BasicNameValuePair("__EVENTTARGET", "ctl00$cphMain$lbtnRegist"));
+                        payselectFormParams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
+                        payselectFormParams.add(new BasicNameValuePair("__LASTFOCUS", ""));
+                        payselectFormParams.add(new BasicNameValuePair("__VIEWSTATE",
+                                        PageUtil.fetchElementValueAttrWithId(payselectDoc, "__VIEWSTATE")));
+
+                        payselectFormParams.add(new BasicNameValuePair("__VIEWSTATEGENERATOR",
+                                        PageUtil.fetchElementValueAttrWithId(payselectDoc, "__VIEWSTATEGENERATOR")));
+                        payselectFormParams.add(new BasicNameValuePair("__EVENTVALIDATION",
+                                        PageUtil.fetchElementValueAttrWithId(payselectDoc, "__EVENTVALIDATION")));
+
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$inputSpSearchFront", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguageSP", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$inputSpSearch", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguagePC", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$inputPcSearch", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$payment", "rdoLocal"));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnCardNo", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnCardNoToken", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnResultCode", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdn3DToken", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$cphMain$hdnHash", ""));
+                        payselectFormParams.add(new BasicNameValuePair("ctl00$ddlLanguageFooterPC", ""));
+
+                        HttpPost paySelectPost = new HttpPost(BaseParameters.PAY_SELECT_URI);
+                        paySelectPost.setEntity(
+                                        new UrlEncodedFormEntity(payselectFormParams, Charset.forName("utf-8")));
+                        payselectFormParams = null;
+                        afterPaymentModel = HttpClientUtil.defaultRequest(payselectHeaders, paySelectPost,
+                                        currentContext, true, false, null);
+                } else {
+                        throw new Exception("params error! ,doPay method required whetherLimitedGood params value");
+                }
+
+                LOG.info("after payment end");
+                if (StringUtils.isBlank(afterPaymentModel.getHtml())) {
+                        throw new Exception("doPay afterPaymentModel.getHtml is empty !");
+                }
+                return Jsoup.parse(afterPaymentModel.getHtml());
         }
 
         /**

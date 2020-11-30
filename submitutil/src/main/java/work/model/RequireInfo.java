@@ -219,12 +219,15 @@ public class RequireInfo {
 
     private List<GoodModel> goodModels;
 
+    @JsonProperty("wlg")
+    private String whetherLimitedGood;
+
     public RequireInfo() {
     }
 
     public RequireInfo(String departureDate, String terminalState, String airlineName, String flightNumber,
             String destination, String searchWords, String receiver, String changeFlight, String chkAirportName,
-            String chkAgree, String goodInfos) {
+            String chkAgree, String goodInfos, String whetherLimitedGood) {
         this.departureDate = departureDate;
         this.terminalState = terminalState;
         this.airlineName = airlineName;
@@ -236,6 +239,15 @@ public class RequireInfo {
         this.chkAirportName = chkAirportName;
         this.chkAgree = chkAgree;
         this.goodInfos = goodInfos;
+        this.whetherLimitedGood = whetherLimitedGood;
+    }
+
+    public String getWhetherLimitedGood() {
+        return whetherLimitedGood;
+    }
+
+    public void setWhetherLimitedGood(String whetherLimitedGood) {
+        this.whetherLimitedGood = whetherLimitedGood;
     }
 
     public String getEmail() {
@@ -377,7 +389,7 @@ public class RequireInfo {
                 + '\'' + ", flightNumber='" + flightNumber + '\'' + ", destination='" + destination + '\''
                 + ", searchWords='" + searchWords + '\'' + ", receiver='" + receiver + '\'' + ", changeFlight='"
                 + changeFlight + '\'' + ", chkAirportName='" + chkAirportName + '\'' + ", chkAgree='" + chkAgree + '\''
-                + ", goodModels=" + goodModels + '}';
+                + ", goodModels='" + goodModels + "', whetherLimitedGood='" + whetherLimitedGood + "'}";
     }
 
     public static RequireInfo generateDefualtInfo() {

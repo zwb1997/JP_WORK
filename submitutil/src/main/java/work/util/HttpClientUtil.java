@@ -42,8 +42,7 @@ public class HttpClientUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientUtil.class);
 
-    // private static final HttpHost PROXY_HOST = new
-    // HttpHost(BaseParameters.PROXT_IP, BaseParameters.PROXT_IP_PORT);
+    private static final HttpHost PROXY_HOST = new HttpHost(BaseParameters.PROXT_IP, BaseParameters.PROXT_IP_PORT);
 
     private static final RedirectStrategy REDIRECT_STRATEGY = new DefaultRedirectStrategy();
 
@@ -54,13 +53,13 @@ public class HttpClientUtil {
             .create().setConnectionTimeToLive(Timeout.ofSeconds(10)).setDefaultSocketConfig(SOCKET_CONFIG)
             .setMaxConnPerRoute(20).setMaxConnTotal(50).setConnectionTimeToLive(TimeValue.ofSeconds(5)).build();
 
+    private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setResponseTimeout(Timeout.ofSeconds(10))
+            .setConnectTimeout(Timeout.ofSeconds(5)).setConnectionRequestTimeout(Timeout.ofSeconds(3))
+            .setProxy(PROXY_HOST).build();
+
     // private static final RequestConfig REQUEST_CONFIG =
     // RequestConfig.custom().setResponseTimeout(Timeout.ofSeconds(10))
-    // .setConnectTimeout(Timeout.ofSeconds(5)).setConnectionRequestTimeout(Timeout.ofSeconds(3))
-    // .setProxy(PROXY_HOST).build();
-
-    private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setResponseTimeout(Timeout.ofSeconds(10))
-            .setConnectTimeout(Timeout.ofSeconds(5)).setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
+    // .setConnectTimeout(Timeout.ofSeconds(5)).setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
 
     private static CloseableHttpClient CLIENT = HttpClientBuilder.create().setRedirectStrategy(REDIRECT_STRATEGY)
             .setUserAgent(BaseParameters.USER_AGENT).setConnectionManager(CONNECTION_MANAGER)

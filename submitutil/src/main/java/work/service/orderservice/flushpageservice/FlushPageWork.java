@@ -80,9 +80,11 @@ public class FlushPageWork implements Runnable {
                 HttpGet get = new HttpGet(uri);
                 clientUtilModel = defaultRequest(HEADERS, get, currentContext, true, true, Arrays.asList("set-cookie"));
                 doc = Jsoup.parse(clientUtilModel.getHtml());
-                String val1 = getTextWithClassName(doc, "detail_text");
-                String val2 = fetchElementTextWithId(doc, "ctl00_cphMain_lblAddCart");
-                if (StringUtils.isNotBlank(val2) && StringUtils.isBlank(val1)) {
+                String goodCounts = getTextWithClassName(doc, "volume_area");
+                String shoppingAction = fetchElementTextWithId(doc, "ctl00_cphMain_lblAddCart");
+                LOG.info("volume_area\t{}", goodCounts);
+                LOG.info("shoppingAction\t{}", shoppingAction);
+                if (StringUtils.isNotBlank(goodCounts) && StringUtils.isNotBlank(shoppingAction)) {
                     LOG.info("goodid :{} could buy now, will begin order service...", goodIdStr);
                     flag = true;
                     break;
