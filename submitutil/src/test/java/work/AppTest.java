@@ -53,11 +53,11 @@ public class AppTest {
 
   @Test
   public void test33() {
-    // String words = "123-222-333";
-    // String[][] deepArray = new String[][] { { "John", "Mary" }, { "Alice", "Bob"
-    // } };
-    // System.out.println(Arrays.toString(words.split("-")));
-    // System.out.println(Arrays.deepToString(deepArray));
+
+    String[] arr = { "1", "2", "3" };
+    String val = String.join("-", arr);
+    System.out.println(val);
+    System.out.println(Runtime.getRuntime().availableProcessors());
   }
 
 }

@@ -82,22 +82,22 @@ public class FlushPageWork implements Runnable {
                 doc = Jsoup.parse(clientUtilModel.getHtml());
                 String goodCounts = getTextWithClassName(doc, "volume_area");
                 String shoppingAction = fetchElementTextWithId(doc, "ctl00_cphMain_lblAddCart");
-                LOG.info("volume_area\t{}", goodCounts);
-                LOG.info("shoppingAction\t{}", shoppingAction);
+                LOG.info("volume_area\t>>\t{}", goodCounts);
+                LOG.info("shoppingAction\t>>\t{}", shoppingAction);
                 if (StringUtils.isNotBlank(goodCounts) && StringUtils.isNotBlank(shoppingAction)) {
                     LOG.info("goodid :{} could buy now, will begin order service...", goodIdStr);
                     flag = true;
                     break;
                 }
                 int timeCount = RANDOM.nextInt(3);
-                Thread.sleep(timeCount * 100);
-                LOG.info("flush work sleep :{} milliseconds", timeCount * 100);
+                Thread.sleep(timeCount * 1);
+                LOG.info("flush work sleep :{} milliseconds", timeCount * 1);
             } catch (Exception e) {
                 LOG.error("flushPage error", e);
             }
         }
 
-        LOG.info("flush page end good could buy now");
+        LOG.info("flush page end good >> {} could buy now", goodIdStr);
 
         try {
             // directly add good to trolley
