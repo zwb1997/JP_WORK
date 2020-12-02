@@ -56,10 +56,10 @@ public class ThreadProvider {
         int largetPoolCounts = EXECUTOR_SERVICE.getLargestPoolSize();
         long taskCounts = EXECUTOR_SERVICE.getTaskCount();
         long completeTaskCounts = EXECUTOR_SERVICE.getCompletedTaskCount();
-
+        int onBlockingTaskCounts = BLOCKING_DEQUE.size();
         LOG.info(
-                "core_pool_size :{}\tmax_pool_size :{}\tblocking_queue_size :{}\tactive_task_counts :{}\tappear_larget_counts :{}\tapproximate_done_task_counts :{}\tcomplete_task_counts :{}",
-                CORE_POOL_SIZE, MAX_CORE_POOL_SIZE, BLOCKING_DEQUE_SIZE, activeWorkCounts, largetPoolCounts, taskCounts,
+                "core_pool_size :{}\tmax_pool_size :{}\tblocking_queue_size :{}\ton_blocking_queue_size:{}\tactive_task_counts :{}\tappear_larget_counts :{}\tapproximate_done_task_counts :{}\tcomplete_task_counts :{}",
+                CORE_POOL_SIZE, MAX_CORE_POOL_SIZE, BLOCKING_DEQUE_SIZE, onBlockingTaskCounts, activeWorkCounts, largetPoolCounts, taskCounts,
                 completeTaskCounts);
         try {
             EXECUTOR_SERVICE.submit(task);
