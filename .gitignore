@@ -23,9 +23,10 @@
 hs_err_pid*
 
 page/.settings
-*/target
-submitutil/.settings
-submitutil/.idea
+/target
+.settings
+.idea
+.vscode
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -51,4 +52,3 @@ submitutil/.idea
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
