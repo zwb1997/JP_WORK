@@ -2,8 +2,8 @@ const electron = require('electron');
 const { app, BrowserWindow } = require('electron')
 function createWindow () {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 960,
+    height: 800,
     show:false,
     webPreferences: {
       nodeIntegration: true
@@ -12,6 +12,7 @@ function createWindow () {
   win.once('ready-to-show',()=>{
     win.show();
   })
+  // win.setMenu(null);
   win.loadFile('../desktop_app/build/index.html')
 }
 
