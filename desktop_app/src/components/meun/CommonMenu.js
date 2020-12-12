@@ -8,7 +8,7 @@ class CommonMenu extends Component {
   }
 
   render() {
-    return <div>here is menu</div>;
+    return <div className="menu-container">menu</div>;
   }
 }
 
