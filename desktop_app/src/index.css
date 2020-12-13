@@ -9,7 +9,28 @@ html,body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+html,body{
+  overflow: auto;
+}
+/* width */
+html,body::-webkit-scrollbar {
+  
+}
 
+/* Track */
+html,body::-webkit-scrollbar-track {
+  
+}
+ 
+/* Handle */
+html,body::-webkit-scrollbar-thumb {
+ 
+}
+
+/* Handle on hover */
+html,body::-webkit-scrollbar-thumb:hover {
+  
+}
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

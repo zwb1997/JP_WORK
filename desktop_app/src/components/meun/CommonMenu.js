@@ -8,7 +8,11 @@ class CommonMenu extends Component {
   }
 
   render() {
-    return <div className="menu-container">menu</div>;
+    return <div className="menu-container">
+      <div className="menu-text">
+        Order Tool 0.1v
+      </div>
+    </div>;
   }
 }
 
