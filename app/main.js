@@ -1,19 +1,21 @@
-const electron = require('electron');
 const { app, BrowserWindow } = require('electron')
+
 function createWindow () {
   const win = new BrowserWindow({
-    width: 960,
-    height: 800,
-    show:false,
+    width: 800,
+    height: 600,
+    titleBarStyle: 'customButtonsOnHover',
+    show:false,// Avoid flicker
     webPreferences: {
       nodeIntegration: true
     }
-  });
-  win.once('ready-to-show',()=>{
-    win.show();
   })
-  // win.setMenu(null);
-  win.loadFile('../desktop_app/build/index.html')
+  win.setMenu(null);
+  win.setTitle("app");
+  win.loadFile('./build/index.html')
+  win.once('ready-to-show', () => {
+    win.show()
+  })
 }
 
 app.whenReady().then(createWindow)
