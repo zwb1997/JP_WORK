@@ -1,0 +1,15 @@
+.menu_container {
+  height: 100%;
+  width: 100%;
+}
+.menu_item {
+  width: 100%;
+  text-align: center;
+}
+.MuiListItemText-root.menu-text > span {
+  font-size: 20px;
+  font-weight: 600;
+}
+.MuiButtonBase-root.MuiListItem-root.menu-list-item.MuiListItem-gutters.MuiListItem-button:hover {
+  background-color: rgba(34, 148, 224, 0.692);
+}
